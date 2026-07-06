@@ -12,3 +12,6 @@
 .user
 .tmp
 .log
+
+# 개인 작업 메모
+PrivateNotes/
