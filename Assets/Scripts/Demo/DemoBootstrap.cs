@@ -41,16 +41,19 @@ public sealed class DemoBootstrap : MonoBehaviour
 
         EnemySpawner spawner = new GameObject("Enemy Spawner").AddComponent<EnemySpawner>();
         spawner.Configure(enemyPrefab, enemyData, path, core, 0.65f);
+        spawner.gameObject.AddComponent<SpawnPointWarningView>();
+        spawner.gameObject.AddComponent<WaveSpawnVfx>();
 
         WaveManager waveManager = new GameObject("Wave Manager").AddComponent<WaveManager>();
         waveManager.Configure(spawner, CreateWaves(enemyData));
 
         TowerPlacement placement = new GameObject("Tower Placement").AddComponent<TowerPlacement>();
         placement.Configure(camera, towerPrefab, towerData, ~0);
+        placement.gameObject.AddComponent<TowerPlacementPreview>();
 
-        CreatePlayer(new Vector3(-4.5f, -2.5f, 0f));
+        DefenderController player = CreatePlayer(new Vector3(-4.5f, -2.5f, 0f));
         CreateStartingTower(towerPrefab, towerData, new Vector3(-1.5f, 0.7f, 0f));
-        CreateUi(core, waveManager);
+        CreateUi(core, waveManager, placement, player);
 
         gameManager.StartGame();
         economyManager.AddGold(0);
@@ -94,6 +97,7 @@ public sealed class DemoBootstrap : MonoBehaviour
         line.startColor = new Color(0.85f, 0.67f, 0.28f);
         line.endColor = new Color(0.85f, 0.67f, 0.28f);
         line.SetPositions(positions);
+        pathRoot.AddComponent<PathPulseView>();
 
         for (int i = 0; i < positions.Length; i++)
         {
@@ -111,14 +115,20 @@ public sealed class DemoBootstrap : MonoBehaviour
         GameObject coreObject = CreateSpriteObject("Core", position, new Color(0.21f, 0.76f, 0.91f), new Vector3(0.9f, 0.9f, 1f));
         coreObject.layer = BlockedLayer;
         coreObject.AddComponent<BoxCollider2D>();
-        return coreObject.AddComponent<CoreHealth>();
+        CoreHealth coreHealth = coreObject.AddComponent<CoreHealth>();
+        coreObject.AddComponent<CoreViewAnimator>();
+        return coreHealth;
     }
 
-    private void CreatePlayer(Vector3 position)
+    private DefenderController CreatePlayer(Vector3 position)
     {
         GameObject player = CreateSpriteObject("Player Defender", position, new Color(0.28f, 0.88f, 0.52f), new Vector3(0.55f, 0.55f, 1f));
         player.AddComponent<CircleCollider2D>();
-        player.AddComponent<DefenderController>().Configure(5.5f, 3.4f, 14f, 0.28f, ~0);
+        DefenderController controller = player.AddComponent<DefenderController>();
+        controller.Configure(5.5f, 3.4f, 14f, 0.28f, ~0);
+        player.AddComponent<DefenderViewAnimator>();
+        player.AddComponent<DefenderAttackVfx>();
+        return controller;
     }
 
     private EnemyData CreateEnemyData()
@@ -161,22 +171,30 @@ public sealed class DemoBootstrap : MonoBehaviour
     private Enemy CreateEnemyPrefab()
     {
         GameObject prefab = CreateSpriteObject("Enemy Prefab", Vector3.zero, new Color(0.92f, 0.25f, 0.26f), new Vector3(0.45f, 0.45f, 1f));
+        prefab.SetActive(false);
         prefab.layer = EnemyLayer;
         prefab.AddComponent<CircleCollider2D>();
         prefab.AddComponent<EnemyMovement>();
         Enemy enemy = prefab.AddComponent<Enemy>();
-        prefab.SetActive(false);
+        prefab.AddComponent<EnemyViewAnimator>();
+        prefab.AddComponent<EnemyHealthBar>();
         return enemy;
     }
 
     private Tower CreateTowerPrefab()
     {
         GameObject prefab = CreateSpriteObject("Tower Prefab", Vector3.zero, new Color(0.97f, 0.77f, 0.24f), new Vector3(0.6f, 0.6f, 1f));
+        prefab.SetActive(false);
         prefab.layer = BlockedLayer;
         prefab.AddComponent<BoxCollider2D>();
         Tower tower = prefab.AddComponent<Tower>();
-        prefab.AddComponent<TowerAttack>();
-        prefab.SetActive(false);
+        if (prefab.GetComponent<TowerAttack>() == null)
+        {
+            prefab.AddComponent<TowerAttack>();
+        }
+        prefab.AddComponent<TowerViewAnimator>();
+        prefab.AddComponent<TowerTargetLine>();
+        prefab.AddComponent<TowerRangePreview>();
         return tower;
     }
 
@@ -188,7 +206,7 @@ public sealed class DemoBootstrap : MonoBehaviour
         tower.Initialize(towerData);
     }
 
-    private void CreateUi(CoreHealth core, WaveManager waveManager)
+    private void CreateUi(CoreHealth core, WaveManager waveManager, TowerPlacement placement, DefenderController player)
     {
         EnsureEventSystem();
 
@@ -199,24 +217,34 @@ public sealed class DemoBootstrap : MonoBehaviour
 
         Text title = CreateText(canvas.transform, "Title", "Augmented Defense - Play Test", 24, TextAnchor.UpperLeft, new Vector2(18f, -14f), new Vector2(460f, 36f));
         title.color = new Color(0.92f, 0.95f, 0.97f);
+        title.gameObject.AddComponent<UITextFeedback>().CaptureBaseState();
 
         Text coreText = CreateText(canvas.transform, "Core Text", "Core", 18, TextAnchor.UpperLeft, new Vector2(18f, -54f), new Vector2(180f, 28f));
         Text goldText = CreateText(canvas.transform, "Gold Text", "Gold", 18, TextAnchor.UpperLeft, new Vector2(18f, -84f), new Vector2(180f, 28f));
         Text waveText = CreateText(canvas.transform, "Wave Text", "Wave", 18, TextAnchor.UpperLeft, new Vector2(18f, -114f), new Vector2(180f, 28f));
-        CreateText(canvas.transform, "Hint Text", "WASD move   Space shoot   Left click place tower", 16, TextAnchor.LowerLeft, new Vector2(18f, 18f), new Vector2(520f, 30f));
+        coreText.gameObject.AddComponent<UITextFeedback>();
+        goldText.gameObject.AddComponent<UITextFeedback>();
+        waveText.gameObject.AddComponent<UITextFeedback>();
+        Text hintText = CreateText(canvas.transform, "Hint Text", "WASD move   Space shoot   Left click place tower", 16, TextAnchor.LowerLeft, new Vector2(18f, 18f), new Vector2(520f, 30f));
+        hintText.gameObject.AddComponent<UITextFeedback>();
+        hintText.gameObject.AddComponent<UIHintFeedback>().Configure(player, placement);
 
         Button waveButton = CreateButton(canvas.transform, "Start Wave Button", "Start Wave", new Vector2(-118f, -24f), new Vector2(140f, 38f));
         waveButton.onClick.AddListener(waveManager.StartNextWave);
+        waveButton.gameObject.AddComponent<UIButtonStateFeedback>().Configure(true, true);
 
         Button restartButton = CreateButton(canvas.transform, "Restart Button", "Restart", new Vector2(-118f, -68f), new Vector2(140f, 38f));
         restartButton.onClick.AddListener(RestartDemo);
+        restartButton.gameObject.AddComponent<UIButtonStateFeedback>().Configure(false, false);
 
         GameObject gameOverPanel = CreatePanel(canvas.transform, "Game Over Panel", new Color(0f, 0f, 0f, 0.72f), Vector2.zero, new Vector2(360f, 150f));
+        gameOverPanel.AddComponent<UIPanelFeedback>();
         CreateText(gameOverPanel.transform, "Game Over Text", "GAME OVER", 30, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(320f, 80f));
         gameOverPanel.SetActive(false);
 
         UIManager uiManager = new GameObject("UI Manager").AddComponent<UIManager>();
         uiManager.Configure(coreText, goldText, waveText, gameOverPanel, core, waveManager);
+        placement.PlacementFailed += _ => uiManager.NotifyPlacementFailed();
     }
 
     private void EnsureEventSystem()

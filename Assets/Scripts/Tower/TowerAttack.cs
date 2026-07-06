@@ -1,4 +1,5 @@
 using UnityEngine;
+using System;
 
 [RequireComponent(typeof(Tower))]
 public sealed class TowerAttack : MonoBehaviour
@@ -7,6 +8,8 @@ public sealed class TowerAttack : MonoBehaviour
 
     private Tower tower;
     private float cooldown;
+
+    public event Action<Enemy> Fired;
 
     private void Awake()
     {
@@ -28,6 +31,7 @@ public sealed class TowerAttack : MonoBehaviour
         }
 
         target.TakeDamage(tower.Damage);
+        Fired?.Invoke(target);
         cooldown = tower.AttackInterval;
     }
 

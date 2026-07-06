@@ -5,12 +5,16 @@ using UnityEngine;
 public sealed class Enemy : MonoBehaviour
 {
     [SerializeField] private EnemyData data;
+    [SerializeField] private float deathDestroyDelay = 0.12f;
 
+    public int MaxHealth => data != null ? data.maxHealth : 30;
     public int CurrentHealth { get; private set; }
     public bool IsDead { get; private set; }
     public int CoreDamage => data != null ? data.coreDamage : 10;
     public int GoldReward => data != null ? data.goldReward : 5;
 
+    public event Action<Enemy, int, int> HealthChanged;
+    public event Action<Enemy, bool> Dying;
     public event Action<Enemy> Died;
     public event Action<Enemy> ReachedCore;
 
@@ -25,8 +29,9 @@ public sealed class Enemy : MonoBehaviour
     {
         data = enemyData;
         IsDead = false;
-        CurrentHealth = data != null ? data.maxHealth : 30;
+        CurrentHealth = MaxHealth;
         movement.Initialize(path, core, this);
+        HealthChanged?.Invoke(this, CurrentHealth, MaxHealth);
     }
 
     public void TakeDamage(float amount)
@@ -36,7 +41,9 @@ public sealed class Enemy : MonoBehaviour
             return;
         }
 
-        CurrentHealth -= Mathf.CeilToInt(amount);
+        CurrentHealth = Mathf.Max(0, CurrentHealth - Mathf.CeilToInt(amount));
+        HealthChanged?.Invoke(this, CurrentHealth, MaxHealth);
+
         if (CurrentHealth <= 0)
         {
             Die(true);
@@ -67,6 +74,7 @@ public sealed class Enemy : MonoBehaviour
         }
 
         IsDead = true;
+        Dying?.Invoke(this, grantReward);
 
         if (grantReward)
         {
@@ -74,6 +82,6 @@ public sealed class Enemy : MonoBehaviour
         }
 
         Died?.Invoke(this);
-        Destroy(gameObject);
+        Destroy(gameObject, deathDestroyDelay);
     }
 }

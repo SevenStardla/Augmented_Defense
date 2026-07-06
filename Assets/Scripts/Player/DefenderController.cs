@@ -1,4 +1,5 @@
 using UnityEngine;
+using System;
 
 [RequireComponent(typeof(SpriteRenderer))]
 public sealed class DefenderController : MonoBehaviour
@@ -10,6 +11,9 @@ public sealed class DefenderController : MonoBehaviour
     [SerializeField] private LayerMask enemyLayerMask = ~0;
 
     private float cooldown;
+
+    public event Action<Vector2> MoveInputChanged;
+    public event Action<Enemy> Fired;
 
     private void Update()
     {
@@ -34,6 +38,7 @@ public sealed class DefenderController : MonoBehaviour
             input.Normalize();
         }
 
+        MoveInputChanged?.Invoke(input);
         transform.position += (Vector3)(input * moveSpeed * Time.deltaTime);
     }
 
@@ -52,6 +57,7 @@ public sealed class DefenderController : MonoBehaviour
         }
 
         target.TakeDamage(attackDamage);
+        Fired?.Invoke(target);
         cooldown = attackInterval;
     }
 

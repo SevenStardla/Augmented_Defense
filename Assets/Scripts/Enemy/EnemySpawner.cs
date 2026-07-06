@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using System;
 
 public sealed class EnemySpawner : MonoBehaviour
 {
@@ -10,6 +11,8 @@ public sealed class EnemySpawner : MonoBehaviour
     [SerializeField] private float spawnInterval = 0.75f;
 
     public int AliveCount { get; private set; }
+    public event Action<Vector3> SpawnWarning;
+    public event Action<Enemy> EnemySpawned;
 
     public void Configure(Enemy prefab, EnemyData enemyData, Transform[] waypointPath, CoreHealth targetCore, float interval)
     {
@@ -23,6 +26,8 @@ public sealed class EnemySpawner : MonoBehaviour
     public IEnumerator SpawnEnemies(int count, EnemyData enemyData = null)
     {
         EnemyData data = enemyData != null ? enemyData : defaultEnemyData;
+        Vector3 spawnPosition = path != null && path.Length > 0 ? path[0].position : transform.position;
+        SpawnWarning?.Invoke(spawnPosition);
 
         for (int i = 0; i < count; i++)
         {
@@ -43,8 +48,8 @@ public sealed class EnemySpawner : MonoBehaviour
         enemy.gameObject.SetActive(true);
         AliveCount++;
         enemy.Died += HandleEnemyRemoved;
-        enemy.ReachedCore += HandleEnemyRemoved;
         enemy.Initialize(data, path, core);
+        EnemySpawned?.Invoke(enemy);
     }
 
     private void HandleEnemyRemoved(Enemy enemy)
