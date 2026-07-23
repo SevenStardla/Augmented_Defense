@@ -70,9 +70,9 @@
 
 ## Wave Text
 
-- 표시 형식: `Wave number`
-- 연결 데이터: `WaveManager.CurrentWaveNumber`
-- 현재 동작: `UIManager.Update()`에서 매 프레임 갱신.
+- 표시 형식: `Wave current/total`
+- 연결 데이터: `WaveManager.WaveChanged`, `WaveManager.CurrentWaveNumber`, `WaveManager.TotalWaves`
+- 현재 동작: `UIManager.RefreshWaveText()`에서 상태 변경 또는 웨이브 변경 이벤트를 받을 때 갱신.
 - 성격: 전투 리듬을 알려주는 라운드 안내자.
 - 행동 패턴:
   - 새 웨이브 시작 시 0.25초 동안 크기 1.2배 확대 후 복귀.
@@ -177,7 +177,7 @@
   - `CoreHealth.HealthChanged`를 구독해 `Core Text`를 갱신한다.
   - `EconomyManager.GoldChanged`를 구독해 `Gold Text`를 갱신한다.
   - `GameManager.StateChanged`를 구독해 `Game Over Panel`을 켜고 끈다.
-  - `Update()`에서 `Wave Text`를 현재 웨이브 번호로 유지한다.
+  - `WaveManager.WaveChanged`를 구독해 `Wave Text`를 현재 웨이브 번호와 전체 웨이브 수로 갱신한다.
 - 확장 메모:
   - 애니메이션을 붙일 때는 `UIManager`가 단순히 텍스트만 바꾸는 대신, 각 UI 전용 뷰 컴포넌트에 `PlayChanged()`, `PlayWarning()`, `SetInteractableState()` 같은 명령을 보내는 구조가 좋다.
 
