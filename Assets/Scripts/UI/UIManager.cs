@@ -90,6 +90,11 @@ public sealed class UIManager : MonoBehaviour
             GameManager.Instance.StateChanged += HandleStateChanged;
         }
 
+        if (waveManager != null)
+        {
+            waveManager.WaveChanged += HandleWaveChanged;
+        }
+
         subscribed = true;
     }
 
@@ -115,15 +120,12 @@ public sealed class UIManager : MonoBehaviour
             GameManager.Instance.StateChanged -= HandleStateChanged;
         }
 
-        subscribed = false;
-    }
-
-    private void Update()
-    {
-        if (waveText != null && waveManager != null)
+        if (waveManager != null)
         {
-            waveText.text = $"Wave {waveManager.CurrentWaveNumber}";
+            waveManager.WaveChanged -= HandleWaveChanged;
         }
+
+        subscribed = false;
     }
 
     private void HandleHealthChanged(int current, int max)
@@ -172,6 +174,8 @@ public sealed class UIManager : MonoBehaviour
 
     private void HandleStateChanged(GameState state)
     {
+        RefreshWaveText();
+
         if (gameOverPanel != null)
         {
             if (gameOverFeedback != null)
@@ -209,5 +213,21 @@ public sealed class UIManager : MonoBehaviour
         }
 
         lastState = state;
+    }
+
+    private void HandleWaveChanged(int currentWave, int totalWaves)
+    {
+        RefreshWaveText();
+    }
+
+    private void RefreshWaveText()
+    {
+        if (waveText == null || waveManager == null)
+        {
+            return;
+        }
+
+        int totalWaves = waveManager.TotalWaves;
+        waveText.text = totalWaves > 0 ? $"Wave {waveManager.CurrentWaveNumber}/{totalWaves}" : $"Wave {waveManager.CurrentWaveNumber}";
     }
 }

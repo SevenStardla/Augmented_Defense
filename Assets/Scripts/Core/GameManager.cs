@@ -36,6 +36,7 @@ public sealed class GameManager : MonoBehaviour
 
     public void StartGame()
     {
+        Time.timeScale = 1f;
         SetState(GameState.BuildPhase);
     }
 
@@ -51,12 +52,22 @@ public sealed class GameManager : MonoBehaviour
 
     public void GameOver()
     {
+        if (State == GameState.GameOver || State == GameState.Clear)
+        {
+            return;
+        }
+
         SetState(GameState.GameOver);
         Time.timeScale = 0f;
     }
 
     public void Clear()
     {
+        if (State == GameState.Clear || State == GameState.GameOver)
+        {
+            return;
+        }
+
         SetState(GameState.Clear);
         Time.timeScale = 0f;
     }

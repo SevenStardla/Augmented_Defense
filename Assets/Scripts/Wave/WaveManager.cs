@@ -9,12 +9,15 @@ public sealed class WaveManager : MonoBehaviour
     [SerializeField] private float waveEndCheckInterval = 0.25f;
 
     public int CurrentWaveIndex { get; private set; }
-    public int CurrentWaveNumber => CurrentWaveIndex + 1;
+    public int CurrentWaveNumber => waves != null && waves.Length > 0 ? Mathf.Min(CurrentWaveIndex + 1, waves.Length) : CurrentWaveIndex + 1;
+    public int TotalWaves => waves != null ? waves.Length : 0;
+    public bool IsWaveRunning => runningWave != null;
 
-    private bool spawning;
+    private Coroutine runningWave;
 
     public event Action<int> WaveStarted;
     public event Action<int> WaveEnded;
+    public event Action<int, int> WaveChanged;
 
     public void Configure(EnemySpawner enemySpawner, WaveData[] waveList)
     {
@@ -25,30 +28,31 @@ public sealed class WaveManager : MonoBehaviour
 
     public void StartNextWave()
     {
-        if (spawning || spawner == null || waves == null || CurrentWaveIndex >= waves.Length)
+        if (runningWave != null || spawner == null || waves == null || CurrentWaveIndex >= waves.Length)
         {
             return;
         }
 
-        StartCoroutine(RunWave(waves[CurrentWaveIndex]));
+        runningWave = StartCoroutine(RunWave(waves[CurrentWaveIndex]));
     }
 
     private IEnumerator RunWave(WaveData wave)
     {
-        spawning = true;
         GameManager.Instance?.StartWave();
         WaveStarted?.Invoke(CurrentWaveNumber);
+        WaveChanged?.Invoke(CurrentWaveNumber, TotalWaves);
 
-        yield return spawner.SpawnEnemies(wave.enemyCount, wave.enemyData);
+        yield return spawner.SpawnWave(wave);
 
-        while (spawner.AliveCount > 0)
+        while (spawner.IsSpawning || spawner.AliveCount > 0)
         {
             yield return new WaitForSeconds(waveEndCheckInterval);
         }
 
-        spawning = false;
         WaveEnded?.Invoke(CurrentWaveNumber);
         CurrentWaveIndex++;
+        WaveChanged?.Invoke(CurrentWaveNumber, TotalWaves);
+        runningWave = null;
 
         if (CurrentWaveIndex >= waves.Length)
         {

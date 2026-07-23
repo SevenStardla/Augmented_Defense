@@ -18,6 +18,11 @@ public sealed class TowerAttack : MonoBehaviour
 
     private void Update()
     {
+        if (GameManager.Instance != null && GameManager.Instance.State != GameState.WavePhase)
+        {
+            return;
+        }
+
         cooldown -= Time.deltaTime;
         if (cooldown > 0f)
         {

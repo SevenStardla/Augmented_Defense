@@ -30,11 +30,16 @@ public sealed class EconomyManager : MonoBehaviour
 
     public bool CanAfford(int amount)
     {
-        return Gold >= amount;
+        return amount >= 0 && Gold >= amount;
     }
 
     public bool TrySpend(int amount)
     {
+        if (amount <= 0)
+        {
+            return amount == 0;
+        }
+
         if (!CanAfford(amount))
         {
             return false;

@@ -17,6 +17,11 @@ public sealed class DefenderController : MonoBehaviour
 
     private void Update()
     {
+        if (GameManager.Instance != null && (GameManager.Instance.State == GameState.GameOver || GameManager.Instance.State == GameState.Clear))
+        {
+            return;
+        }
+
         Move();
         Attack();
     }
@@ -44,6 +49,11 @@ public sealed class DefenderController : MonoBehaviour
 
     private void Attack()
     {
+        if (GameManager.Instance != null && GameManager.Instance.State != GameState.WavePhase)
+        {
+            return;
+        }
+
         cooldown -= Time.deltaTime;
         if (!Input.GetKey(KeyCode.Space) || cooldown > 0f)
         {
