@@ -1,0 +1,8 @@
+{
+    "[csharp]": {
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": "never",
+            "source.removeUnusedImports": "never"
+        }
+    }
+}
