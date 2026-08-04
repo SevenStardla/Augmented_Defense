@@ -127,7 +127,7 @@
 ## Restart Button
 
 - 표시 문구: `Restart`
-- 연결 동작: `RestartDemo`
+- 연결 동작: `MainSceneRestarter.RestartMainScene`
 - 현재 위치: 우상단, `anchoredPosition (-118, -68)`
 - 성격: 언제든 다시 시작할 수 있는 안전장치.
 - 행동 패턴:

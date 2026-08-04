@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 [DefaultExecutionOrder(-1000)]
@@ -8,8 +9,14 @@ public sealed class DemoBootstrap : MonoBehaviour
     private const int EnemyLayer = 8;
     private const int BlockedLayer = 9;
 
-    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
-    private static void CreateForEmptyScene()
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+    private static void RegisterSceneLoadedCallback()
+    {
+        SceneManager.sceneLoaded -= HandleSceneLoaded;
+        SceneManager.sceneLoaded += HandleSceneLoaded;
+    }
+
+    private static void HandleSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         if (FindFirstObjectByType<GameManager>() != null)
         {
@@ -21,6 +28,7 @@ public sealed class DemoBootstrap : MonoBehaviour
 
     private void Awake()
     {
+        Debug.Log("DemoBootstrap is rebuilding the Main scene.");
         BuildScene();
     }
 
@@ -234,7 +242,7 @@ public sealed class DemoBootstrap : MonoBehaviour
         waveButton.gameObject.AddComponent<UIButtonStateFeedback>().Configure(true, true);
 
         Button restartButton = CreateButton(canvas.transform, "Restart Button", "Restart", new Vector2(-118f, -68f), new Vector2(140f, 38f));
-        restartButton.onClick.AddListener(RestartDemo);
+        restartButton.gameObject.AddComponent<MainSceneRestarter>();
         restartButton.gameObject.AddComponent<UIButtonStateFeedback>().Configure(false, false);
 
         GameObject gameOverPanel = CreatePanel(canvas.transform, "Game Over Panel", new Color(0f, 0f, 0f, 0.72f), Vector2.zero, new Vector2(360f, 150f));
@@ -355,15 +363,4 @@ public sealed class DemoBootstrap : MonoBehaviour
         return new Vector2(0f, 1f);
     }
 
-    private void RestartDemo()
-    {
-        UnityEngine.SceneManagement.Scene activeScene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
-        if (activeScene.buildIndex >= 0)
-        {
-            UnityEngine.SceneManagement.SceneManager.LoadScene(activeScene.buildIndex);
-            return;
-        }
-
-        UnityEngine.SceneManagement.SceneManager.LoadScene(activeScene.name);
-    }
 }
