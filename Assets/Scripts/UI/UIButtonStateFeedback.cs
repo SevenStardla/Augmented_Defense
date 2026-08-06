@@ -97,7 +97,7 @@ public sealed class UIButtonStateFeedback : MonoBehaviour, IPointerDownHandler, 
 
         if (disableDuringWave)
         {
-            button.interactable = state == GameState.BuildPhase || state == GameState.AugmentPhase;
+            button.interactable = state == GameState.BuildPhase;
         }
     }
 }

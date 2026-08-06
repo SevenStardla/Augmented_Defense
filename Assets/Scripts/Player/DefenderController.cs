@@ -66,7 +66,8 @@ public sealed class DefenderController : MonoBehaviour
             return;
         }
 
-        target.TakeDamage(attackDamage);
+        float multiplier = RuntimeAugmentStats.Instance != null ? RuntimeAugmentStats.Instance.DefenderDamageMultiplier : 1f;
+        target.TakeDamage(attackDamage * multiplier);
         Fired?.Invoke(target);
         cooldown = attackInterval;
     }

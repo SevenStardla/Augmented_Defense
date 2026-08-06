@@ -35,4 +35,15 @@ public sealed class CoreHealth : MonoBehaviour
             GameManager.Instance?.GameOver();
         }
     }
+
+    public void Heal(int amount)
+    {
+        if (amount <= 0 || CurrentHealth <= 0 || CurrentHealth >= MaxHealth)
+        {
+            return;
+        }
+
+        CurrentHealth = Mathf.Min(MaxHealth, CurrentHealth + amount);
+        HealthChanged?.Invoke(CurrentHealth, MaxHealth);
+    }
 }

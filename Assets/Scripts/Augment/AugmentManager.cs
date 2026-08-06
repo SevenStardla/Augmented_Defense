@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System;
 using UnityEngine;
 
 public sealed class AugmentManager : MonoBehaviour
@@ -11,11 +12,18 @@ public sealed class AugmentManager : MonoBehaviour
     private readonly Dictionary<string, int> stackCounts = new Dictionary<string, int>();
 
     public IReadOnlyList<AugmentData> SelectedAugments => selectedAugments;
+    public event Action<AugmentData> AugmentSelected;
+
+    public void Configure(AugmentData[] augments, int choices = 3)
+    {
+        availableAugments = augments;
+        offerCount = Mathf.Max(1, choices);
+    }
 
     public AugmentData[] RollOffers()
     {
-        IEnumerable<AugmentData> pool = availableAugments.Where(CanSelect);
-        return pool.OrderBy(_ => Random.value).Take(offerCount).ToArray();
+        IEnumerable<AugmentData> pool = (availableAugments ?? Array.Empty<AugmentData>()).Where(CanSelect);
+        return pool.OrderBy(_ => UnityEngine.Random.value).Take(offerCount).ToArray();
     }
 
     public void SelectAugment(AugmentData augment)
@@ -34,6 +42,7 @@ public sealed class AugmentManager : MonoBehaviour
         string key = augment.Key;
         stackCounts[key] = GetStackCount(augment) + 1;
         ApplyAugment(augment);
+        AugmentSelected?.Invoke(augment);
         GameManager.Instance?.SetState(GameState.BuildPhase);
     }
 
@@ -61,7 +70,38 @@ public sealed class AugmentManager : MonoBehaviour
 
     private void ApplyAugment(AugmentData augment)
     {
-        // MVP hook: concrete effects will be routed to tower/core/economy systems here.
-        Debug.Log($"Selected augment: {augment.displayName}");
+        RuntimeAugmentStats stats = RuntimeAugmentStats.Instance;
+        if (stats == null)
+        {
+            Debug.LogWarning("RuntimeAugmentStats is missing; augment could not be applied.");
+            return;
+        }
+
+        switch (augment.id)
+        {
+            case "tower_damage":
+                stats.AddTowerDamage(augment.value);
+                break;
+            case "tower_attack_speed":
+                stats.AddTowerAttackSpeed(augment.value);
+                break;
+            case "tower_range":
+                stats.AddTowerRange(augment.value);
+                break;
+            case "defender_damage":
+                stats.AddDefenderDamage(augment.value);
+                break;
+            case "gold_reward":
+                stats.AddGoldReward(augment.value);
+                break;
+            case "core_repair":
+                FindFirstObjectByType<CoreHealth>()?.Heal(Mathf.RoundToInt(augment.value));
+                break;
+            default:
+                Debug.LogWarning($"Unknown augment id: {augment.id}");
+                break;
+        }
+
+        Debug.Log($"Selected augment: {augment.displayName} ({GetStackCount(augment)})");
     }
 }

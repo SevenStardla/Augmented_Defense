@@ -6,9 +6,9 @@ public sealed class Tower : MonoBehaviour
     [SerializeField] private TowerData data;
 
     public TowerData Data => data;
-    public float Damage => data != null ? data.damage : 10f;
-    public float AttackInterval => data != null ? data.attackInterval : 1f;
-    public float Range => data != null ? data.range : 4f;
+    public float Damage => (data != null ? data.damage : 10f) * (RuntimeAugmentStats.Instance != null ? RuntimeAugmentStats.Instance.TowerDamageMultiplier : 1f);
+    public float AttackInterval => (data != null ? data.attackInterval : 1f) / (RuntimeAugmentStats.Instance != null ? RuntimeAugmentStats.Instance.TowerAttackSpeedMultiplier : 1f);
+    public float Range => (data != null ? data.range : 4f) * (RuntimeAugmentStats.Instance != null ? RuntimeAugmentStats.Instance.TowerRangeMultiplier : 1f);
 
     public void Initialize(TowerData towerData)
     {

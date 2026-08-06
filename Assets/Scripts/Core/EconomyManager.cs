@@ -57,7 +57,8 @@ public sealed class EconomyManager : MonoBehaviour
             return;
         }
 
-        Gold += amount;
+        float multiplier = RuntimeAugmentStats.Instance != null ? RuntimeAugmentStats.Instance.GoldRewardMultiplier : 1f;
+        Gold += Mathf.RoundToInt(amount * multiplier);
         GoldChanged?.Invoke(Gold);
     }
 }

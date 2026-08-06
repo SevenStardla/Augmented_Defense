@@ -7,6 +7,7 @@ public sealed class UIManager : MonoBehaviour
     [SerializeField] private Text goldText;
     [SerializeField] private Text waveText;
     [SerializeField] private GameObject gameOverPanel;
+    [SerializeField] private GameObject clearPanel;
     [SerializeField] private CoreHealth coreHealth;
     [SerializeField] private WaveManager waveManager;
 
@@ -15,11 +16,12 @@ public sealed class UIManager : MonoBehaviour
     private UITextFeedback goldFeedback;
     private UITextFeedback waveFeedback;
     private UIPanelFeedback gameOverFeedback;
+    private UIPanelFeedback clearFeedback;
     private int lastCoreHealth = -1;
     private int lastGold = -1;
     private GameState lastState;
 
-    public void Configure(Text coreText, Text goldValueText, Text waveValueText, GameObject gameOverRoot, CoreHealth core, WaveManager waves)
+    public void Configure(Text coreText, Text goldValueText, Text waveValueText, GameObject gameOverRoot, GameObject clearRoot, CoreHealth core, WaveManager waves)
     {
         Unsubscribe();
 
@@ -27,12 +29,14 @@ public sealed class UIManager : MonoBehaviour
         goldText = goldValueText;
         waveText = waveValueText;
         gameOverPanel = gameOverRoot;
+        clearPanel = clearRoot;
         coreHealth = core;
         waveManager = waves;
         coreFeedback = coreHealthText != null ? coreHealthText.GetComponent<UITextFeedback>() : null;
         goldFeedback = goldText != null ? goldText.GetComponent<UITextFeedback>() : null;
         waveFeedback = waveText != null ? waveText.GetComponent<UITextFeedback>() : null;
         gameOverFeedback = gameOverPanel != null ? gameOverPanel.GetComponent<UIPanelFeedback>() : null;
+        clearFeedback = clearPanel != null ? clearPanel.GetComponent<UIPanelFeedback>() : null;
 
         Subscribe();
 
@@ -192,6 +196,25 @@ public sealed class UIManager : MonoBehaviour
             else
             {
                 gameOverPanel.SetActive(state == GameState.GameOver);
+            }
+        }
+
+        if (clearPanel != null)
+        {
+            if (clearFeedback != null)
+            {
+                if (state == GameState.Clear)
+                {
+                    clearFeedback.Show();
+                }
+                else
+                {
+                    clearFeedback.Hide();
+                }
+            }
+            else
+            {
+                clearPanel.SetActive(state == GameState.Clear);
             }
         }
 

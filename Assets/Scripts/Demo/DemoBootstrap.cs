@@ -39,6 +39,9 @@ public sealed class DemoBootstrap : MonoBehaviour
         Camera camera = CreateCamera();
         GameManager gameManager = new GameObject("Game Manager").AddComponent<GameManager>();
         EconomyManager economyManager = new GameObject("Economy Manager").AddComponent<EconomyManager>();
+        new GameObject("Runtime Augment Stats").AddComponent<RuntimeAugmentStats>();
+        AugmentManager augmentManager = new GameObject("Augment Manager").AddComponent<AugmentManager>();
+        augmentManager.Configure(CreateAugments(), 3);
 
         Transform[] path = CreatePath();
         CoreHealth core = CreateCore(path[path.Length - 1].position);
@@ -61,7 +64,7 @@ public sealed class DemoBootstrap : MonoBehaviour
 
         DefenderController player = CreatePlayer(new Vector3(-4.5f, -2.5f, 0f));
         CreateStartingTower(towerPrefab, towerData, new Vector3(-1.5f, 0.7f, 0f));
-        CreateUi(core, waveManager, placement, player);
+        CreateUi(core, waveManager, placement, player, augmentManager);
 
         gameManager.StartGame();
         economyManager.AddGold(0);
@@ -69,16 +72,48 @@ public sealed class DemoBootstrap : MonoBehaviour
 
     private Camera CreateCamera()
     {
-        GameObject cameraObject = new GameObject("Main Camera");
+        Camera camera = Camera.main != null ? Camera.main : FindFirstObjectByType<Camera>();
+        GameObject cameraObject = camera != null ? camera.gameObject : new GameObject("Main Camera");
+        cameraObject.name = "Main Camera";
         cameraObject.tag = "MainCamera";
         cameraObject.transform.position = new Vector3(0f, 0f, -10f);
 
-        Camera camera = cameraObject.AddComponent<Camera>();
+        if (camera == null)
+        {
+            camera = cameraObject.AddComponent<Camera>();
+        }
+
         camera.clearFlags = CameraClearFlags.SolidColor;
         camera.backgroundColor = new Color(0.07f, 0.09f, 0.11f);
         camera.orthographic = true;
         camera.orthographicSize = 5.2f;
         return camera;
+    }
+
+    private AugmentData[] CreateAugments()
+    {
+        return new[]
+        {
+            CreateAugment("tower_damage", "Overcharged Turrets", "Tower damage +25%", AugmentType.Tower, 0.25f, 3),
+            CreateAugment("tower_attack_speed", "Rapid Cycling", "Tower attack speed +20%", AugmentType.Tower, 0.2f, 3),
+            CreateAugment("tower_range", "Long-Range Optics", "Tower range +18%", AugmentType.Tower, 0.18f, 2),
+            CreateAugment("defender_damage", "Defender Calibration", "Defender damage +35%", AugmentType.Status, 0.35f, 3),
+            CreateAugment("gold_reward", "Salvage Protocol", "Enemy gold rewards +25%", AugmentType.Economy, 0.25f, 2),
+            CreateAugment("core_repair", "Emergency Repair", "Restore 25 Core health", AugmentType.Core, 25f, 3)
+        };
+    }
+
+    private AugmentData CreateAugment(string id, string displayName, string description, AugmentType type, float value, int maxStacks)
+    {
+        AugmentData augment = ScriptableObject.CreateInstance<AugmentData>();
+        augment.id = id;
+        augment.displayName = displayName;
+        augment.description = description;
+        augment.type = type;
+        augment.value = value;
+        augment.canStack = true;
+        augment.maxStacks = maxStacks;
+        return augment;
     }
 
     private Transform[] CreatePath()
@@ -214,7 +249,7 @@ public sealed class DemoBootstrap : MonoBehaviour
         tower.Initialize(towerData);
     }
 
-    private void CreateUi(CoreHealth core, WaveManager waveManager, TowerPlacement placement, DefenderController player)
+    private void CreateUi(CoreHealth core, WaveManager waveManager, TowerPlacement placement, DefenderController player, AugmentManager augmentManager)
     {
         EnsureEventSystem();
 
@@ -246,13 +281,53 @@ public sealed class DemoBootstrap : MonoBehaviour
         restartButton.gameObject.AddComponent<UIButtonStateFeedback>().Configure(false, false);
 
         GameObject gameOverPanel = CreatePanel(canvas.transform, "Game Over Panel", new Color(0f, 0f, 0f, 0.72f), Vector2.zero, new Vector2(360f, 150f));
+        CenterPanel(gameOverPanel);
         gameOverPanel.AddComponent<UIPanelFeedback>();
         CreateText(gameOverPanel.transform, "Game Over Text", "GAME OVER", 30, TextAnchor.MiddleCenter, Vector2.zero, new Vector2(320f, 80f));
         gameOverPanel.SetActive(false);
 
+        GameObject clearPanel = CreatePanel(canvas.transform, "Clear Panel", new Color(0.03f, 0.14f, 0.12f, 0.9f), Vector2.zero, new Vector2(400f, 190f));
+        CenterPanel(clearPanel);
+        clearPanel.AddComponent<UIPanelFeedback>();
+        CreateText(clearPanel.transform, "Clear Text", "SYSTEM SECURED\nALL WAVES CLEARED", 28, TextAnchor.MiddleCenter, new Vector2(0f, 30f), new Vector2(360f, 90f));
+        Button clearRestartButton = CreateButton(clearPanel.transform, "Clear Restart Button", "Play Again", new Vector2(-130f, -130f), new Vector2(140f, 38f));
+        clearRestartButton.gameObject.AddComponent<MainSceneRestarter>();
+        clearPanel.SetActive(false);
+
+        CreateAugmentUi(canvas.transform, augmentManager);
+
         UIManager uiManager = new GameObject("UI Manager").AddComponent<UIManager>();
-        uiManager.Configure(coreText, goldText, waveText, gameOverPanel, core, waveManager);
+        uiManager.Configure(coreText, goldText, waveText, gameOverPanel, clearPanel, core, waveManager);
         placement.PlacementFailed += _ => uiManager.NotifyPlacementFailed();
+    }
+
+    private void CreateAugmentUi(Transform canvas, AugmentManager augmentManager)
+    {
+        GameObject panel = CreatePanel(canvas, "Augment Selection Panel", new Color(0.04f, 0.07f, 0.11f, 0.96f), Vector2.zero, new Vector2(760f, 360f));
+        CenterPanel(panel);
+        CreateText(panel.transform, "Augment Title", "CHOOSE AN AUGMENT", 27, TextAnchor.MiddleCenter, new Vector2(-380f, -20f), new Vector2(760f, 50f));
+
+        Button[] buttons = new Button[3];
+        Text[] labels = new Text[3];
+        for (int i = 0; i < buttons.Length; i++)
+        {
+            float x = -50f - i * 235f;
+            buttons[i] = CreateButton(panel.transform, $"Augment Choice {i + 1}", "Augment", new Vector2(x, -95f), new Vector2(215f, 210f));
+            labels[i] = buttons[i].GetComponentInChildren<Text>();
+            labels[i].fontSize = 17;
+        }
+
+        AugmentSelectionUI selectionUi = new GameObject("Augment Selection UI").AddComponent<AugmentSelectionUI>();
+        selectionUi.Configure(panel, augmentManager, buttons, labels);
+    }
+
+    private void CenterPanel(GameObject panel)
+    {
+        RectTransform rect = panel.GetComponent<RectTransform>();
+        rect.anchorMin = new Vector2(0.5f, 0.5f);
+        rect.anchorMax = new Vector2(0.5f, 0.5f);
+        rect.pivot = new Vector2(0.5f, 0.5f);
+        rect.anchoredPosition = Vector2.zero;
     }
 
     private void EnsureEventSystem()
