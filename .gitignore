@@ -12,6 +12,9 @@
 .user
 .tmp
 .log
+*.csproj
+*.sln
+*.slnx
 
 # 개인 작업 메모
 PrivateNotes/
