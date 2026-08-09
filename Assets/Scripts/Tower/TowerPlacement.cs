@@ -1,5 +1,6 @@
 using UnityEngine;
 using System;
+using UnityEngine.EventSystems;
 
 public sealed class TowerPlacement : MonoBehaviour
 {
@@ -37,7 +38,7 @@ public sealed class TowerPlacement : MonoBehaviour
             return;
         }
 
-        if (Input.GetMouseButtonDown(0))
+        if (Input.GetMouseButtonDown(0) && !IsPointerOverUi())
         {
             TryPlaceAtMouse();
         }
@@ -62,6 +63,11 @@ public sealed class TowerPlacement : MonoBehaviour
     public bool CanPlaceAt(Vector3 position)
     {
         return CanPlace(position);
+    }
+
+    public bool IsPointerOverUi()
+    {
+        return EventSystem.current != null && EventSystem.current.IsPointerOverGameObject();
     }
 
     private void TryPlaceAtMouse()

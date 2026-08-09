@@ -33,9 +33,8 @@ public sealed class TowerPlacementPreview : MonoBehaviour
 
     private void Update()
     {
-        bool visible = GameManager.Instance == null ||
-            GameManager.Instance.State == GameState.BuildPhase ||
-            GameManager.Instance.State == GameState.AugmentPhase;
+        bool visible = (GameManager.Instance == null || GameManager.Instance.State == GameState.BuildPhase) &&
+            !placement.IsPointerOverUi();
 
         if (!visible || placement.SelectedTowerData == null)
         {
