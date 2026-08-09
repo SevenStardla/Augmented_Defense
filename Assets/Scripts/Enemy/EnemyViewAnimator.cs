@@ -13,6 +13,7 @@ public sealed class EnemyViewAnimator : MonoBehaviour
     private SpriteRenderer spriteRenderer;
     private Color baseColor;
     private Vector3 baseScale;
+    private Vector3 initialScale;
     private Vector3 previousPosition;
     private float hitTimer;
     private float deathTimer;
@@ -23,8 +24,17 @@ public sealed class EnemyViewAnimator : MonoBehaviour
         enemy = GetComponent<Enemy>();
         spriteRenderer = GetComponent<SpriteRenderer>();
         baseColor = spriteRenderer.color;
-        baseScale = transform.localScale;
+        initialScale = transform.localScale;
+        baseScale = initialScale;
         previousPosition = transform.position;
+    }
+
+    public void ApplyAppearance(Color color, float sizeMultiplier)
+    {
+        baseColor = color;
+        spriteRenderer.color = color;
+        baseScale = initialScale * Mathf.Max(0.25f, sizeMultiplier);
+        transform.localScale = baseScale;
     }
 
     private void OnEnable()

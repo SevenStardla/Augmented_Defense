@@ -5,7 +5,7 @@ public sealed class EconomyManager : MonoBehaviour
 {
     public static EconomyManager Instance { get; private set; }
 
-    [SerializeField] private int startingGold = 120;
+    [SerializeField] private int startingGold = 70;
 
     public int Gold { get; private set; }
 

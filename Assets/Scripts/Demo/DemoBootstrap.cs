@@ -45,18 +45,20 @@ public sealed class DemoBootstrap : MonoBehaviour
 
         Transform[] path = CreatePath();
         CoreHealth core = CreateCore(path[path.Length - 1].position);
-        EnemyData enemyData = CreateEnemyData();
+        EnemyData normalEnemy = CreateEnemyData("Normal Enemy", new Color(0.92f, 0.25f, 0.26f), 1f, 50, 1.1f, 10, 4);
+        EnemyData runnerEnemy = CreateEnemyData("Runner Enemy", new Color(1f, 0.62f, 0.16f), 0.78f, 30, 1.85f, 8, 3);
+        EnemyData tankEnemy = CreateEnemyData("Tank Enemy", new Color(0.62f, 0.3f, 0.9f), 1.35f, 160, 0.68f, 20, 10);
         Enemy enemyPrefab = CreateEnemyPrefab();
         TowerData towerData = CreateTowerData();
         Tower towerPrefab = CreateTowerPrefab();
 
         EnemySpawner spawner = new GameObject("Enemy Spawner").AddComponent<EnemySpawner>();
-        spawner.Configure(enemyPrefab, enemyData, path, core, 0.65f);
+        spawner.Configure(enemyPrefab, normalEnemy, path, core, 0.65f);
         spawner.gameObject.AddComponent<SpawnPointWarningView>();
         spawner.gameObject.AddComponent<WaveSpawnVfx>();
 
         WaveManager waveManager = new GameObject("Wave Manager").AddComponent<WaveManager>();
-        waveManager.Configure(spawner, CreateWaves(enemyData));
+        waveManager.Configure(spawner, CreateWaves(normalEnemy, runnerEnemy, tankEnemy));
 
         TowerPlacement placement = new GameObject("Tower Placement").AddComponent<TowerPlacement>();
         placement.Configure(camera, towerPrefab, towerData, ~0);
@@ -168,19 +170,22 @@ public sealed class DemoBootstrap : MonoBehaviour
         GameObject player = CreateSpriteObject("Player Defender", position, new Color(0.28f, 0.88f, 0.52f), new Vector3(0.55f, 0.55f, 1f));
         player.AddComponent<CircleCollider2D>();
         DefenderController controller = player.AddComponent<DefenderController>();
-        controller.Configure(5.5f, 3.4f, 14f, 0.28f, ~0);
+        controller.Configure(5.5f, 3.4f, 10f, 0.38f, ~0);
         player.AddComponent<DefenderViewAnimator>();
         player.AddComponent<DefenderAttackVfx>();
         return controller;
     }
 
-    private EnemyData CreateEnemyData()
+    private EnemyData CreateEnemyData(string displayName, Color color, float sizeMultiplier, int maxHealth, float moveSpeed, int coreDamage, int goldReward)
     {
         EnemyData data = ScriptableObject.CreateInstance<EnemyData>();
-        data.maxHealth = 35;
-        data.moveSpeed = 1.1f;
-        data.coreDamage = 10;
-        data.goldReward = 7;
+        data.displayName = displayName;
+        data.displayColor = color;
+        data.sizeMultiplier = sizeMultiplier;
+        data.maxHealth = maxHealth;
+        data.moveSpeed = moveSpeed;
+        data.coreDamage = coreDamage;
+        data.goldReward = goldReward;
         return data;
     }
 
@@ -188,27 +193,40 @@ public sealed class DemoBootstrap : MonoBehaviour
     {
         TowerData data = ScriptableObject.CreateInstance<TowerData>();
         data.type = TowerType.Basic;
-        data.cost = 50;
-        data.damage = 11f;
-        data.attackInterval = 0.55f;
+        data.cost = 70;
+        data.damage = 10f;
+        data.attackInterval = 0.65f;
         data.range = 2.8f;
         return data;
     }
 
-    private WaveData[] CreateWaves(EnemyData enemyData)
+    private WaveData[] CreateWaves(EnemyData normal, EnemyData runner, EnemyData tank)
     {
-        WaveData[] waves = new WaveData[3];
-        int[] counts = { 6, 9, 12 };
-
-        for (int i = 0; i < waves.Length; i++)
+        return new[]
         {
-            WaveData wave = ScriptableObject.CreateInstance<WaveData>();
-            wave.enemyCount = counts[i];
-            wave.enemyData = enemyData;
-            waves[i] = wave;
-        }
+            CreateWave(CreateWaveEntry(normal, 6, 0.7f)),
+            CreateWave(CreateWaveEntry(normal, 6, 0.65f), CreateWaveEntry(runner, 4, 0.45f)),
+            CreateWave(CreateWaveEntry(normal, 8, 0.6f), CreateWaveEntry(runner, 6, 0.4f)),
+            CreateWave(CreateWaveEntry(tank, 3, 1f), CreateWaveEntry(runner, 6, 0.38f), CreateWaveEntry(normal, 6, 0.55f)),
+            CreateWave(CreateWaveEntry(tank, 5, 0.9f), CreateWaveEntry(normal, 10, 0.5f), CreateWaveEntry(runner, 8, 0.34f))
+        };
+    }
 
-        return waves;
+    private WaveData CreateWave(params WaveEntry[] entries)
+    {
+        WaveData wave = ScriptableObject.CreateInstance<WaveData>();
+        wave.entries = entries;
+        return wave;
+    }
+
+    private WaveEntry CreateWaveEntry(EnemyData enemyData, int count, float spawnInterval)
+    {
+        return new WaveEntry
+        {
+            enemyData = enemyData,
+            count = count,
+            spawnInterval = spawnInterval
+        };
     }
 
     private Enemy CreateEnemyPrefab()

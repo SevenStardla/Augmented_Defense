@@ -30,6 +30,13 @@ public sealed class Enemy : MonoBehaviour
         data = enemyData;
         IsDead = false;
         CurrentHealth = MaxHealth;
+
+        if (data != null)
+        {
+            gameObject.name = data.displayName;
+            GetComponent<EnemyViewAnimator>()?.ApplyAppearance(data.displayColor, data.sizeMultiplier);
+        }
+
         movement.Initialize(path, core, this);
         HealthChanged?.Invoke(this, CurrentHealth, MaxHealth);
     }
