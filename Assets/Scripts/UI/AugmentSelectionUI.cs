@@ -7,13 +7,22 @@ public sealed class AugmentSelectionUI : MonoBehaviour
     private AugmentManager manager;
     private Button[] buttons;
     private Text[] labels;
+    private Text feedbackText;
+    private float feedbackTimer;
+    private const float FeedbackDuration = 3f;
 
-    public void Configure(GameObject panelRoot, AugmentManager augmentManager, Button[] choiceButtons, Text[] choiceLabels)
+    public void Configure(GameObject panelRoot, AugmentManager augmentManager, Button[] choiceButtons, Text[] choiceLabels, Text selectionFeedbackText)
     {
         panel = panelRoot;
         manager = augmentManager;
         buttons = choiceButtons;
         labels = choiceLabels;
+        feedbackText = selectionFeedbackText;
+
+        if (manager != null)
+        {
+            manager.AugmentSelected += HandleAugmentSelected;
+        }
 
         if (GameManager.Instance != null)
         {
@@ -24,9 +33,28 @@ public sealed class AugmentSelectionUI : MonoBehaviour
 
     private void OnDestroy()
     {
+        if (manager != null)
+        {
+            manager.AugmentSelected -= HandleAugmentSelected;
+        }
+
         if (GameManager.Instance != null)
         {
             GameManager.Instance.StateChanged -= HandleStateChanged;
+        }
+    }
+
+    private void Update()
+    {
+        if (feedbackTimer <= 0f || feedbackText == null)
+        {
+            return;
+        }
+
+        feedbackTimer -= Time.unscaledDeltaTime;
+        if (feedbackTimer <= 0f)
+        {
+            feedbackText.gameObject.SetActive(false);
         }
     }
 
@@ -58,5 +86,18 @@ public sealed class AugmentSelectionUI : MonoBehaviour
             labels[i].text = $"{offer.displayName}\n{offer.description}\nStack {nextStack}/{offer.maxStacks}";
             button.onClick.AddListener(() => manager.SelectAugment(offer));
         }
+    }
+
+    private void HandleAugmentSelected(AugmentData augment)
+    {
+        if (augment == null || feedbackText == null || manager == null)
+        {
+            return;
+        }
+
+        int stack = manager.GetStackCount(augment);
+        feedbackText.text = $"Selected: {augment.displayName}\n{augment.description}  Stack {stack}/{augment.maxStacks}";
+        feedbackText.gameObject.SetActive(true);
+        feedbackTimer = FeedbackDuration;
     }
 }

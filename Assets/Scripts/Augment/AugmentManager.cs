@@ -63,6 +63,15 @@ public sealed class AugmentManager : MonoBehaviour
             return false;
         }
 
+        if (augment.id == "core_repair")
+        {
+            CoreHealth core = FindFirstObjectByType<CoreHealth>();
+            if (core == null || core.CurrentHealth >= core.MaxHealth)
+            {
+                return false;
+            }
+        }
+
         int currentStacks = GetStackCount(augment);
         int maxStacks = augment.canStack ? Mathf.Max(1, augment.maxStacks) : 1;
         return currentStacks < maxStacks;
