@@ -98,7 +98,7 @@ public sealed class DemoBootstrap : MonoBehaviour
         {
             CreateAugment("tower_damage", "Overcharged Turrets", "Tower damage +25%", AugmentType.Tower, 0.25f, 3),
             CreateAugment("tower_attack_speed", "Rapid Cycling", "Tower attack speed +20%", AugmentType.Tower, 0.2f, 3),
-            CreateAugment("tower_range", "Long-Range Optics", "Tower range +18%", AugmentType.Tower, 0.18f, 2),
+            CreateAugment("tower_range", "Long-Range Optics", "Tower range +25%", AugmentType.Tower, 0.25f, 2),
             CreateAugment("defender_damage", "Defender Calibration", "Defender damage +35%", AugmentType.Status, 0.35f, 3),
             CreateAugment("gold_reward", "Salvage Protocol", "Enemy gold rewards +25%", AugmentType.Economy, 0.25f, 2),
             CreateAugment("core_repair", "Emergency Repair", "Restore 25 Core health", AugmentType.Core, 25f, 3)
@@ -290,6 +290,9 @@ public sealed class DemoBootstrap : MonoBehaviour
         hintText.gameObject.AddComponent<UITextFeedback>();
         hintText.gameObject.AddComponent<UIHintFeedback>().Configure(player, placement);
 
+        GameObject controlsInputBlocker = CreatePanel(canvas.transform, "Top Right Controls Input Blocker", new Color(0.03f, 0.06f, 0.08f, 0.45f), new Vector2(-108f, -14f), new Vector2(170f, 146f));
+        controlsInputBlocker.GetComponent<Image>().raycastTarget = true;
+
         Button waveButton = CreateButton(canvas.transform, "Start Wave Button", "Start Wave", new Vector2(-118f, -24f), new Vector2(140f, 38f));
         waveButton.onClick.AddListener(waveManager.StartNextWave);
         waveButton.gameObject.AddComponent<UIButtonStateFeedback>().Configure(true, true);
@@ -297,6 +300,11 @@ public sealed class DemoBootstrap : MonoBehaviour
         Button restartButton = CreateButton(canvas.transform, "Restart Button", "Restart", new Vector2(-118f, -68f), new Vector2(140f, 38f));
         restartButton.gameObject.AddComponent<MainSceneRestarter>();
         restartButton.gameObject.AddComponent<UIButtonStateFeedback>().Configure(false, false);
+
+        Button speedButton = CreateButton(canvas.transform, "Game Speed Button", "Speed 1x", new Vector2(-118f, -112f), new Vector2(140f, 38f));
+        speedButton.gameObject.AddComponent<UIButtonStateFeedback>().Configure(false, false);
+        Text speedLabel = speedButton.GetComponentInChildren<Text>();
+        new GameObject("Game Speed Controller").AddComponent<GameSpeedController>().Configure(speedButton, speedLabel);
 
         GameObject gameOverPanel = CreatePanel(canvas.transform, "Game Over Panel", new Color(0f, 0f, 0f, 0.72f), Vector2.zero, new Vector2(360f, 150f));
         CenterPanel(gameOverPanel);
@@ -321,6 +329,11 @@ public sealed class DemoBootstrap : MonoBehaviour
 
     private void CreateAugmentUi(Transform canvas, AugmentManager augmentManager)
     {
+        Text feedbackText = CreateText(canvas, "Augment Selection Feedback", "", 20, TextAnchor.MiddleCenter, new Vector2(0f, 205f), new Vector2(640f, 60f));
+        feedbackText.color = new Color(0.9f, 0.82f, 0.35f, 1f);
+        feedbackText.raycastTarget = false;
+        feedbackText.gameObject.SetActive(false);
+
         GameObject panel = CreatePanel(canvas, "Augment Selection Panel", new Color(0.04f, 0.07f, 0.11f, 0.96f), Vector2.zero, new Vector2(760f, 360f));
         CenterPanel(panel);
         CreateText(panel.transform, "Augment Title", "CHOOSE AN AUGMENT", 27, TextAnchor.MiddleCenter, new Vector2(-380f, -20f), new Vector2(760f, 50f));
@@ -336,7 +349,7 @@ public sealed class DemoBootstrap : MonoBehaviour
         }
 
         AugmentSelectionUI selectionUi = new GameObject("Augment Selection UI").AddComponent<AugmentSelectionUI>();
-        selectionUi.Configure(panel, augmentManager, buttons, labels);
+        selectionUi.Configure(panel, augmentManager, buttons, labels, feedbackText);
     }
 
     private void CenterPanel(GameObject panel)
