@@ -8,6 +8,8 @@ public sealed class RuntimeAugmentStats : MonoBehaviour
     public float TowerAttackSpeedMultiplier { get; private set; } = 1f;
     public float TowerRangeMultiplier { get; private set; } = 1f;
     public float DefenderDamageMultiplier { get; private set; } = 1f;
+    public float DefenderAttackSpeedMultiplier { get; private set; } = 1f;
+    public float DefenderRangeMultiplier { get; private set; } = 1f;
     public float GoldRewardMultiplier { get; private set; } = 1f;
 
     private void Awake()
@@ -25,5 +27,7 @@ public sealed class RuntimeAugmentStats : MonoBehaviour
     public void AddTowerAttackSpeed(float amount) => TowerAttackSpeedMultiplier += Mathf.Max(0f, amount);
     public void AddTowerRange(float amount) => TowerRangeMultiplier += Mathf.Max(0f, amount);
     public void AddDefenderDamage(float amount) => DefenderDamageMultiplier += Mathf.Max(0f, amount);
+    public void AddDefenderAttackSpeed(float amount) => DefenderAttackSpeedMultiplier += Mathf.Max(0f, amount);
+    public void AddDefenderRange(float amount) => DefenderRangeMultiplier += Mathf.Max(0f, amount);
     public void AddGoldReward(float amount) => GoldRewardMultiplier += Mathf.Max(0f, amount);
 }

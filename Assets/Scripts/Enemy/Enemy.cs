@@ -12,6 +12,7 @@ public sealed class Enemy : MonoBehaviour
     public bool IsDead { get; private set; }
     public int CoreDamage => data != null ? data.coreDamage : 10;
     public int GoldReward => data != null ? data.goldReward : 5;
+    public bool IsBoss => data != null && data.isBoss;
 
     public event Action<Enemy, int, int> HealthChanged;
     public event Action<Enemy, bool> Dying;

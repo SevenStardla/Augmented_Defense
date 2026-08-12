@@ -100,6 +100,12 @@ public sealed class AugmentManager : MonoBehaviour
             case "defender_damage":
                 stats.AddDefenderDamage(augment.value);
                 break;
+            case "defender_attack_speed":
+                stats.AddDefenderAttackSpeed(augment.value);
+                break;
+            case "defender_range":
+                stats.AddDefenderRange(augment.value);
+                break;
             case "gold_reward":
                 stats.AddGoldReward(augment.value);
                 break;

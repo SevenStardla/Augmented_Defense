@@ -4,6 +4,7 @@ using UnityEngine;
 public sealed class EnemyData : ScriptableObject
 {
     public string displayName = "Enemy";
+    public bool isBoss;
     public Color displayColor = new Color(0.92f, 0.25f, 0.26f, 1f);
     [Min(0.25f)] public float sizeMultiplier = 1f;
     [Min(1)] public int maxHealth = 30;

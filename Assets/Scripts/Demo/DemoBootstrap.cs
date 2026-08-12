@@ -48,6 +48,7 @@ public sealed class DemoBootstrap : MonoBehaviour
         EnemyData normalEnemy = CreateEnemyData("Normal Enemy", new Color(0.92f, 0.25f, 0.26f), 1f, 50, 1.1f, 10, 4);
         EnemyData runnerEnemy = CreateEnemyData("Runner Enemy", new Color(1f, 0.62f, 0.16f), 0.78f, 30, 1.85f, 8, 3);
         EnemyData tankEnemy = CreateEnemyData("Tank Enemy", new Color(0.62f, 0.3f, 0.9f), 1.35f, 160, 0.68f, 20, 10);
+        EnemyData bossEnemy = CreateEnemyData("Overseer Boss", new Color(0.95f, 0.18f, 0.72f), 1.9f, 1000, 0.52f, 40, 50, true);
         Enemy enemyPrefab = CreateEnemyPrefab();
         TowerData towerData = CreateTowerData();
         Tower towerPrefab = CreateTowerPrefab();
@@ -58,7 +59,7 @@ public sealed class DemoBootstrap : MonoBehaviour
         spawner.gameObject.AddComponent<WaveSpawnVfx>();
 
         WaveManager waveManager = new GameObject("Wave Manager").AddComponent<WaveManager>();
-        waveManager.Configure(spawner, CreateWaves(normalEnemy, runnerEnemy, tankEnemy));
+        waveManager.Configure(spawner, CreateWaves(normalEnemy, runnerEnemy, tankEnemy, bossEnemy));
 
         TowerPlacement placement = new GameObject("Tower Placement").AddComponent<TowerPlacement>();
         placement.Configure(camera, towerPrefab, towerData, ~0);
@@ -66,7 +67,7 @@ public sealed class DemoBootstrap : MonoBehaviour
 
         DefenderController player = CreatePlayer(new Vector3(-4.5f, -2.5f, 0f));
         CreateStartingTower(towerPrefab, towerData, new Vector3(-1.5f, 0.7f, 0f));
-        CreateUi(core, waveManager, placement, player, augmentManager);
+        CreateUi(core, waveManager, placement, player, augmentManager, spawner);
 
         gameManager.StartGame();
         economyManager.AddGold(0);
@@ -100,6 +101,8 @@ public sealed class DemoBootstrap : MonoBehaviour
             CreateAugment("tower_attack_speed", "Rapid Cycling", "Tower attack speed +20%", AugmentType.Tower, 0.2f, 3),
             CreateAugment("tower_range", "Long-Range Optics", "Tower range +25%", AugmentType.Tower, 0.25f, 2),
             CreateAugment("defender_damage", "Defender Calibration", "Defender damage +35%", AugmentType.Status, 0.35f, 3),
+            CreateAugment("defender_attack_speed", "Reflex Accelerator", "Defender attack speed +20%", AugmentType.Status, 0.2f, 3),
+            CreateAugment("defender_range", "Expanded Targeting", "Defender attack range +25%", AugmentType.Status, 0.25f, 2),
             CreateAugment("gold_reward", "Salvage Protocol", "Enemy gold rewards +25%", AugmentType.Economy, 0.25f, 2),
             CreateAugment("core_repair", "Emergency Repair", "Restore 25 Core health", AugmentType.Core, 25f, 3)
         };
@@ -176,10 +179,11 @@ public sealed class DemoBootstrap : MonoBehaviour
         return controller;
     }
 
-    private EnemyData CreateEnemyData(string displayName, Color color, float sizeMultiplier, int maxHealth, float moveSpeed, int coreDamage, int goldReward)
+    private EnemyData CreateEnemyData(string displayName, Color color, float sizeMultiplier, int maxHealth, float moveSpeed, int coreDamage, int goldReward, bool isBoss = false)
     {
         EnemyData data = ScriptableObject.CreateInstance<EnemyData>();
         data.displayName = displayName;
+        data.isBoss = isBoss;
         data.displayColor = color;
         data.sizeMultiplier = sizeMultiplier;
         data.maxHealth = maxHealth;
@@ -200,7 +204,7 @@ public sealed class DemoBootstrap : MonoBehaviour
         return data;
     }
 
-    private WaveData[] CreateWaves(EnemyData normal, EnemyData runner, EnemyData tank)
+    private WaveData[] CreateWaves(EnemyData normal, EnemyData runner, EnemyData tank, EnemyData boss)
     {
         return new[]
         {
@@ -208,7 +212,7 @@ public sealed class DemoBootstrap : MonoBehaviour
             CreateWave(CreateWaveEntry(normal, 6, 0.65f), CreateWaveEntry(runner, 4, 0.45f)),
             CreateWave(CreateWaveEntry(normal, 8, 0.6f), CreateWaveEntry(runner, 6, 0.4f)),
             CreateWave(CreateWaveEntry(tank, 3, 1f), CreateWaveEntry(runner, 6, 0.38f), CreateWaveEntry(normal, 6, 0.55f)),
-            CreateWave(CreateWaveEntry(tank, 5, 0.9f), CreateWaveEntry(normal, 10, 0.5f), CreateWaveEntry(runner, 8, 0.34f))
+            CreateWave(CreateWaveEntry(tank, 5, 0.9f), CreateWaveEntry(normal, 10, 0.5f), CreateWaveEntry(runner, 8, 0.34f), CreateWaveEntry(boss, 1, 0.1f))
         };
     }
 
@@ -267,7 +271,7 @@ public sealed class DemoBootstrap : MonoBehaviour
         tower.Initialize(towerData);
     }
 
-    private void CreateUi(CoreHealth core, WaveManager waveManager, TowerPlacement placement, DefenderController player, AugmentManager augmentManager)
+    private void CreateUi(CoreHealth core, WaveManager waveManager, TowerPlacement placement, DefenderController player, AugmentManager augmentManager, EnemySpawner spawner)
     {
         EnsureEventSystem();
 
@@ -289,6 +293,11 @@ public sealed class DemoBootstrap : MonoBehaviour
         Text hintText = CreateText(canvas.transform, "Hint Text", "WASD move   Space shoot   Left click place tower", 16, TextAnchor.LowerLeft, new Vector2(18f, 18f), new Vector2(520f, 30f));
         hintText.gameObject.AddComponent<UITextFeedback>();
         hintText.gameObject.AddComponent<UIHintFeedback>().Configure(player, placement);
+
+        Text bossAnnouncement = CreateText(canvas.transform, "Boss Announcement", "", 30, TextAnchor.MiddleCenter, new Vector2(0f, 90f), new Vector2(560f, 90f));
+        bossAnnouncement.color = new Color(1f, 0.22f, 0.35f, 1f);
+        bossAnnouncement.raycastTarget = false;
+        new GameObject("Boss Encounter UI").AddComponent<BossEncounterUI>().Configure(spawner, bossAnnouncement);
 
         GameObject controlsInputBlocker = CreatePanel(canvas.transform, "Top Right Controls Input Blocker", new Color(0.03f, 0.06f, 0.08f, 0.45f), new Vector2(-108f, -14f), new Vector2(170f, 146f));
         controlsInputBlocker.GetComponent<Image>().raycastTarget = true;
@@ -315,7 +324,7 @@ public sealed class DemoBootstrap : MonoBehaviour
         GameObject clearPanel = CreatePanel(canvas.transform, "Clear Panel", new Color(0.03f, 0.14f, 0.12f, 0.9f), Vector2.zero, new Vector2(400f, 190f));
         CenterPanel(clearPanel);
         clearPanel.AddComponent<UIPanelFeedback>();
-        CreateText(clearPanel.transform, "Clear Text", "SYSTEM SECURED\nALL WAVES CLEARED", 28, TextAnchor.MiddleCenter, new Vector2(0f, 30f), new Vector2(360f, 90f));
+        CreateText(clearPanel.transform, "Clear Text", "SYSTEM DEFENDED\nALL WAVES CLEARED", 28, TextAnchor.MiddleCenter, new Vector2(0f, 30f), new Vector2(360f, 90f));
         Button clearRestartButton = CreateButton(clearPanel.transform, "Clear Restart Button", "Play Again", new Vector2(-130f, -130f), new Vector2(140f, 38f));
         clearRestartButton.gameObject.AddComponent<MainSceneRestarter>();
         clearPanel.SetActive(false);

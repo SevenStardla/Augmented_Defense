@@ -69,12 +69,15 @@ public sealed class DefenderController : MonoBehaviour
         float multiplier = RuntimeAugmentStats.Instance != null ? RuntimeAugmentStats.Instance.DefenderDamageMultiplier : 1f;
         target.TakeDamage(attackDamage * multiplier);
         Fired?.Invoke(target);
-        cooldown = attackInterval;
+        float attackSpeedMultiplier = RuntimeAugmentStats.Instance != null ? RuntimeAugmentStats.Instance.DefenderAttackSpeedMultiplier : 1f;
+        cooldown = attackInterval / attackSpeedMultiplier;
     }
 
     private Enemy FindNearestEnemy()
     {
-        Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, attackRange, enemyLayerMask);
+        float rangeMultiplier = RuntimeAugmentStats.Instance != null ? RuntimeAugmentStats.Instance.DefenderRangeMultiplier : 1f;
+        float currentRange = attackRange * rangeMultiplier;
+        Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, currentRange, enemyLayerMask);
         Enemy nearest = null;
         float nearestDistance = float.MaxValue;
 
@@ -99,6 +102,7 @@ public sealed class DefenderController : MonoBehaviour
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.cyan;
-        Gizmos.DrawWireSphere(transform.position, attackRange);
+        float rangeMultiplier = RuntimeAugmentStats.Instance != null ? RuntimeAugmentStats.Instance.DefenderRangeMultiplier : 1f;
+        Gizmos.DrawWireSphere(transform.position, attackRange * rangeMultiplier);
     }
 }
