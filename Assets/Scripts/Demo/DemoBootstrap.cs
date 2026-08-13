@@ -125,12 +125,12 @@ public sealed class DemoBootstrap : MonoBehaviour
     {
         Vector3[] positions =
         {
-            new Vector3(-7f, 2.7f, 0f),
-            new Vector3(-3.5f, 2.7f, 0f),
-            new Vector3(-3.5f, -0.8f, 0f),
-            new Vector3(1.2f, -0.8f, 0f),
-            new Vector3(1.2f, 2.1f, 0f),
-            new Vector3(5.9f, 2.1f, 0f)
+            new Vector3(-7f, 1f, 0f),
+            new Vector3(-3.5f, 1f, 0f),
+            new Vector3(-3.5f, -2.2f, 0f),
+            new Vector3(1.2f, -2.2f, 0f),
+            new Vector3(1.2f, 1f, 0f),
+            new Vector3(5.9f, 1f, 0f)
         };
 
         Transform[] path = new Transform[positions.Length];
@@ -299,18 +299,18 @@ public sealed class DemoBootstrap : MonoBehaviour
         bossAnnouncement.raycastTarget = false;
         new GameObject("Boss Encounter UI").AddComponent<BossEncounterUI>().Configure(spawner, bossAnnouncement);
 
-        GameObject controlsInputBlocker = CreatePanel(canvas.transform, "Top Right Controls Input Blocker", new Color(0.03f, 0.06f, 0.08f, 0.45f), new Vector2(-108f, -14f), new Vector2(170f, 146f));
+        GameObject controlsInputBlocker = CreatePanel(canvas.transform, "Top Right Controls Input Blocker", Color.clear, new Vector2(-108f, 0f), new Vector2(170f, 140f));
         controlsInputBlocker.GetComponent<Image>().raycastTarget = true;
 
-        Button waveButton = CreateButton(canvas.transform, "Start Wave Button", "Start Wave", new Vector2(-118f, -24f), new Vector2(140f, 38f));
+        Button waveButton = CreateButton(canvas.transform, "Start Wave Button", "Start Wave", new Vector2(-118f, -8f), new Vector2(140f, 38f));
         waveButton.onClick.AddListener(waveManager.StartNextWave);
         waveButton.gameObject.AddComponent<UIButtonStateFeedback>().Configure(true, true);
 
-        Button restartButton = CreateButton(canvas.transform, "Restart Button", "Restart", new Vector2(-118f, -68f), new Vector2(140f, 38f));
+        Button restartButton = CreateButton(canvas.transform, "Restart Button", "Restart", new Vector2(-118f, -52f), new Vector2(140f, 38f));
         restartButton.gameObject.AddComponent<MainSceneRestarter>();
         restartButton.gameObject.AddComponent<UIButtonStateFeedback>().Configure(false, false);
 
-        Button speedButton = CreateButton(canvas.transform, "Game Speed Button", "Speed 1x", new Vector2(-118f, -112f), new Vector2(140f, 38f));
+        Button speedButton = CreateButton(canvas.transform, "Game Speed Button", "Speed 1x", new Vector2(-118f, -96f), new Vector2(140f, 38f));
         speedButton.gameObject.AddComponent<UIButtonStateFeedback>().Configure(false, false);
         Text speedLabel = speedButton.GetComponentInChildren<Text>();
         new GameObject("Game Speed Controller").AddComponent<GameSpeedController>().Configure(speedButton, speedLabel);
@@ -338,14 +338,14 @@ public sealed class DemoBootstrap : MonoBehaviour
 
     private void CreateAugmentUi(Transform canvas, AugmentManager augmentManager)
     {
-        Text feedbackText = CreateText(canvas, "Augment Selection Feedback", "", 20, TextAnchor.MiddleCenter, new Vector2(0f, 205f), new Vector2(640f, 60f));
+        Text feedbackText = CreateText(canvas, "Augment Selection Feedback", "", 18, TextAnchor.MiddleCenter, new Vector2(0f, 105f), new Vector2(500f, 70f));
         feedbackText.color = new Color(0.9f, 0.82f, 0.35f, 1f);
         feedbackText.raycastTarget = false;
         feedbackText.gameObject.SetActive(false);
 
         GameObject panel = CreatePanel(canvas, "Augment Selection Panel", new Color(0.04f, 0.07f, 0.11f, 0.96f), Vector2.zero, new Vector2(760f, 360f));
         CenterPanel(panel);
-        CreateText(panel.transform, "Augment Title", "CHOOSE AN AUGMENT", 27, TextAnchor.MiddleCenter, new Vector2(-380f, -20f), new Vector2(760f, 50f));
+        CreateText(panel.transform, "Augment Title", "CHOOSE AN AUGMENT", 27, TextAnchor.MiddleCenter, new Vector2(0f, 145f), new Vector2(720f, 50f));
 
         Button[] buttons = new Button[3];
         Text[] labels = new Text[3];
