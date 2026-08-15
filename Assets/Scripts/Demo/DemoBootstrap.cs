@@ -294,7 +294,9 @@ public sealed class DemoBootstrap : MonoBehaviour
         hintText.gameObject.AddComponent<UITextFeedback>();
         hintText.gameObject.AddComponent<UIHintFeedback>().Configure(player, placement);
 
-        Text bossAnnouncement = CreateText(canvas.transform, "Boss Announcement", "", 30, TextAnchor.MiddleCenter, new Vector2(0f, 90f), new Vector2(560f, 90f));
+        CreateBossHealthBar(canvas.transform, spawner);
+
+        Text bossAnnouncement = CreateText(canvas.transform, "Boss Announcement", "", 26, TextAnchor.MiddleCenter, new Vector2(0f, 20f), new Vector2(400f, 70f));
         bossAnnouncement.color = new Color(1f, 0.22f, 0.35f, 1f);
         bossAnnouncement.raycastTarget = false;
         new GameObject("Boss Encounter UI").AddComponent<BossEncounterUI>().Configure(spawner, bossAnnouncement);
@@ -334,6 +336,38 @@ public sealed class DemoBootstrap : MonoBehaviour
         UIManager uiManager = new GameObject("UI Manager").AddComponent<UIManager>();
         uiManager.Configure(coreText, goldText, waveText, gameOverPanel, clearPanel, core, waveManager);
         placement.PlacementFailed += _ => uiManager.NotifyPlacementFailed();
+    }
+
+    private void CreateBossHealthBar(Transform canvas, EnemySpawner spawner)
+    {
+        GameObject panel = CreatePanel(canvas, "Boss Health Bar Panel", new Color(0.04f, 0.05f, 0.08f, 0.94f), Vector2.zero, new Vector2(270f, 58f));
+        RectTransform panelRect = panel.GetComponent<RectTransform>();
+        panelRect.anchorMin = new Vector2(0.5f, 1f);
+        panelRect.anchorMax = new Vector2(0.5f, 1f);
+        panelRect.pivot = new Vector2(0.5f, 1f);
+        panelRect.anchoredPosition = new Vector2(0f, -68f);
+
+        Text label = CreateText(panel.transform, "Boss Health Label", "OVERSEER BOSS  1000/1000", 16, TextAnchor.MiddleCenter, new Vector2(0f, 12f), new Vector2(250f, 26f));
+        label.raycastTarget = false;
+
+        GameObject background = CreatePanel(panel.transform, "Boss Health Background", new Color(0.16f, 0.07f, 0.1f, 1f), Vector2.zero, new Vector2(238f, 12f));
+        RectTransform backgroundRect = background.GetComponent<RectTransform>();
+        backgroundRect.anchorMin = new Vector2(0.5f, 0.5f);
+        backgroundRect.anchorMax = new Vector2(0.5f, 0.5f);
+        backgroundRect.pivot = new Vector2(0.5f, 0.5f);
+        backgroundRect.anchoredPosition = new Vector2(0f, -15f);
+        background.GetComponent<Image>().raycastTarget = false;
+
+        GameObject fillObject = CreatePanel(background.transform, "Boss Health Fill", new Color(0.95f, 0.18f, 0.72f, 1f), Vector2.zero, Vector2.zero);
+        RectTransform fillRect = fillObject.GetComponent<RectTransform>();
+        fillRect.anchorMin = Vector2.zero;
+        fillRect.anchorMax = Vector2.one;
+        fillRect.pivot = new Vector2(0f, 0.5f);
+        fillRect.anchoredPosition = Vector2.zero;
+        fillRect.sizeDelta = Vector2.zero;
+        fillObject.GetComponent<Image>().raycastTarget = false;
+
+        new GameObject("Boss Health Bar UI").AddComponent<BossHealthBarUI>().Configure(spawner, panel, fillRect, label);
     }
 
     private void CreateAugmentUi(Transform canvas, AugmentManager augmentManager)
