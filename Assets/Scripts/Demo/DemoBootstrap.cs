@@ -171,6 +171,15 @@ public sealed class DemoBootstrap : MonoBehaviour
     private DefenderController CreatePlayer(Vector3 position)
     {
         GameObject player = CreateSpriteObject("Player Defender", position, new Color(0.28f, 0.88f, 0.52f), new Vector3(0.55f, 0.55f, 1f));
+        Sprite defenderSprite = Resources.Load<Sprite>("Art/Defender/defender_neon");
+        if (defenderSprite != null)
+        {
+            SpriteRenderer spriteRenderer = player.GetComponent<SpriteRenderer>();
+            spriteRenderer.sprite = defenderSprite;
+            spriteRenderer.color = Color.white;
+            player.transform.localScale = new Vector3(0.7f, 0.7f, 1f);
+        }
+
         player.AddComponent<CircleCollider2D>();
         DefenderController controller = player.AddComponent<DefenderController>();
         controller.Configure(5.5f, 3.4f, 10f, 0.38f, ~0);
@@ -280,7 +289,7 @@ public sealed class DemoBootstrap : MonoBehaviour
         canvas.gameObject.AddComponent<CanvasScaler>().uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
         canvas.gameObject.AddComponent<GraphicRaycaster>();
 
-        Text title = CreateText(canvas.transform, "Title", "Augmented Defense - Play Test", 24, TextAnchor.UpperLeft, new Vector2(18f, -14f), new Vector2(460f, 36f));
+        Text title = CreateText(canvas.transform, "Title", "Augmented Defense", 24, TextAnchor.UpperLeft, new Vector2(18f, -14f), new Vector2(460f, 36f));
         title.color = new Color(0.92f, 0.95f, 0.97f);
         title.gameObject.AddComponent<UITextFeedback>().CaptureBaseState();
 
