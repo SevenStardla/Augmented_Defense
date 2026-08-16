@@ -16,5 +16,8 @@
 *.sln
 *.slnx
 
+Assets/_Recovery/
+Assets/_Recovery.meta
+
 # 개인 작업 메모
 PrivateNotes/
