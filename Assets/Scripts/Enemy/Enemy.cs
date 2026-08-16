@@ -5,7 +5,7 @@ using UnityEngine;
 public sealed class Enemy : MonoBehaviour
 {
     [SerializeField] private EnemyData data;
-    [SerializeField] private float deathDestroyDelay = 0.12f;
+    [SerializeField] private float deathDestroyDelay = 0.3f;
 
     public int MaxHealth => data != null ? data.maxHealth : 30;
     public int CurrentHealth { get; private set; }
@@ -35,7 +35,7 @@ public sealed class Enemy : MonoBehaviour
         if (data != null)
         {
             gameObject.name = data.displayName;
-            GetComponent<EnemyViewAnimator>()?.ApplyAppearance(data.displayColor, data.sizeMultiplier);
+            GetComponent<EnemyViewAnimator>()?.ApplyAppearance(data.displaySprite, data.displayColor, data.sizeMultiplier);
         }
 
         movement.Initialize(path, core, this);
@@ -90,6 +90,6 @@ public sealed class Enemy : MonoBehaviour
         }
 
         Died?.Invoke(this);
-        Destroy(gameObject, deathDestroyDelay);
+        Destroy(gameObject, deathDestroyDelay * Mathf.Max(1f, Time.timeScale));
     }
 }

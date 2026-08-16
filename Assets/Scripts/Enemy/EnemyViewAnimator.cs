@@ -6,8 +6,10 @@ public sealed class EnemyViewAnimator : MonoBehaviour
 {
     [SerializeField] private Color hitFlashColor = Color.white;
     [SerializeField] private Color criticalColor = new Color(1f, 0.18f, 0.16f, 1f);
-    [SerializeField] private float hitFlashDuration = 0.08f;
-    [SerializeField] private float deathDuration = 0.12f;
+    [SerializeField] private float hitFlashDuration = 0.18f;
+    [SerializeField] private float hitScaleMultiplier = 1.3f;
+    [SerializeField] private float deathDuration = 0.28f;
+    [SerializeField] private float deathSpinSpeed = 720f;
 
     private Enemy enemy;
     private SpriteRenderer spriteRenderer;
@@ -29,10 +31,19 @@ public sealed class EnemyViewAnimator : MonoBehaviour
         previousPosition = transform.position;
     }
 
-    public void ApplyAppearance(Color color, float sizeMultiplier)
+    public void ApplyAppearance(Sprite sprite, Color color, float sizeMultiplier)
     {
-        baseColor = color;
-        spriteRenderer.color = color;
+        if (sprite != null)
+        {
+            spriteRenderer.sprite = sprite;
+            baseColor = Color.white;
+        }
+        else
+        {
+            baseColor = color;
+        }
+
+        spriteRenderer.color = baseColor;
         baseScale = initialScale * Mathf.Max(0.25f, sizeMultiplier);
         transform.localScale = baseScale;
     }
@@ -53,12 +64,13 @@ public sealed class EnemyViewAnimator : MonoBehaviour
     {
         if (dying)
         {
-            deathTimer += Time.deltaTime;
+            deathTimer += Time.unscaledDeltaTime;
             float t = Mathf.Clamp01(deathTimer / deathDuration);
             Color color = spriteRenderer.color;
             color.a = 1f - t;
             spriteRenderer.color = color;
             transform.localScale = Vector3.Lerp(baseScale, Vector3.zero, t);
+            transform.Rotate(0f, 0f, deathSpinSpeed * Time.unscaledDeltaTime);
             return;
         }
 
@@ -67,8 +79,6 @@ public sealed class EnemyViewAnimator : MonoBehaviour
 
         if (delta.sqrMagnitude > 0.0001f)
         {
-            float angle = Mathf.Atan2(delta.y, delta.x) * Mathf.Rad2Deg;
-            transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.Euler(0f, 0f, angle), Time.deltaTime * 12f);
             transform.localScale = Vector3.Lerp(transform.localScale, new Vector3(baseScale.x * 1.12f, baseScale.y * 0.9f, baseScale.z), Time.deltaTime * 10f);
         }
         else
@@ -78,8 +88,10 @@ public sealed class EnemyViewAnimator : MonoBehaviour
 
         if (hitTimer > 0f)
         {
-            hitTimer -= Time.deltaTime;
-            spriteRenderer.color = Color.Lerp(baseColor, hitFlashColor, Mathf.Clamp01(hitTimer / hitFlashDuration));
+            hitTimer -= Time.unscaledDeltaTime;
+            float hitRatio = Mathf.Clamp01(hitTimer / hitFlashDuration);
+            spriteRenderer.color = Color.Lerp(baseColor, hitFlashColor, hitRatio);
+            transform.localScale = Vector3.Lerp(baseScale, baseScale * hitScaleMultiplier, hitRatio);
             return;
         }
 

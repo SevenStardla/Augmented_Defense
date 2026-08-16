@@ -45,7 +45,7 @@ public sealed class DemoBootstrap : MonoBehaviour
 
         Transform[] path = CreatePath();
         CoreHealth core = CreateCore(path[path.Length - 1].position);
-        EnemyData normalEnemy = CreateEnemyData("Normal Enemy", new Color(0.92f, 0.25f, 0.26f), 1f, 50, 1.1f, 10, 4);
+        EnemyData normalEnemy = CreateEnemyData("Normal Enemy", new Color(0.92f, 0.25f, 0.26f), 1f, 50, 1.1f, 10, 4, spriteResourcePath: "Art/Enemies/normal_enemy_v2");
         EnemyData runnerEnemy = CreateEnemyData("Runner Enemy", new Color(1f, 0.62f, 0.16f), 0.78f, 30, 1.85f, 8, 3);
         EnemyData tankEnemy = CreateEnemyData("Tank Enemy", new Color(0.62f, 0.3f, 0.9f), 1.35f, 160, 0.68f, 20, 10);
         EnemyData bossEnemy = CreateEnemyData("Overseer Boss", new Color(0.95f, 0.18f, 0.72f), 1.9f, 1000, 0.52f, 40, 50, true);
@@ -188,11 +188,12 @@ public sealed class DemoBootstrap : MonoBehaviour
         return controller;
     }
 
-    private EnemyData CreateEnemyData(string displayName, Color color, float sizeMultiplier, int maxHealth, float moveSpeed, int coreDamage, int goldReward, bool isBoss = false)
+    private EnemyData CreateEnemyData(string displayName, Color color, float sizeMultiplier, int maxHealth, float moveSpeed, int coreDamage, int goldReward, bool isBoss = false, string spriteResourcePath = null)
     {
         EnemyData data = ScriptableObject.CreateInstance<EnemyData>();
         data.displayName = displayName;
         data.isBoss = isBoss;
+        data.displaySprite = LoadSpriteResource(spriteResourcePath);
         data.displayColor = color;
         data.sizeMultiplier = sizeMultiplier;
         data.maxHealth = maxHealth;
@@ -200,6 +201,22 @@ public sealed class DemoBootstrap : MonoBehaviour
         data.coreDamage = coreDamage;
         data.goldReward = goldReward;
         return data;
+    }
+
+    private Sprite LoadSpriteResource(string resourcePath)
+    {
+        if (string.IsNullOrEmpty(resourcePath))
+        {
+            return null;
+        }
+
+        Texture2D texture = Resources.Load<Texture2D>(resourcePath);
+        if (texture != null)
+        {
+            return Sprite.Create(texture, new Rect(0f, 0f, texture.width, texture.height), new Vector2(0.5f, 0.5f), texture.width);
+        }
+
+        return Resources.Load<Sprite>(resourcePath);
     }
 
     private TowerData CreateTowerData()

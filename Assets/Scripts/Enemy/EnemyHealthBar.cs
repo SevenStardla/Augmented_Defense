@@ -35,6 +35,7 @@ public sealed class EnemyHealthBar : MonoBehaviour
     {
         if (backgroundRenderer != null)
         {
+            backgroundRenderer.transform.position = transform.position + localOffset;
             backgroundRenderer.transform.rotation = Quaternion.identity;
         }
     }
