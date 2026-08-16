@@ -35,7 +35,11 @@ Augmented Defense
 
 ## 게임 썸네일
 
-아직 준비되지 않았습니다.
+준비가 완료되었습니다.
+
+- itch.io 커버(630×500): `SubmissionAssets/itchio-cover-630x500.png`
+- 대회 제출용 썸네일(1920×1080, 16:9): `SubmissionAssets/game-builders-thumbnail-1920x1080.png`
+- itch.io AI 생성 공개 항목: `Graphics`, `Text & Dialog`, `Code`
 
 권장 조건:
 
