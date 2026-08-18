@@ -13,6 +13,16 @@ public sealed class TowerPlacementPreview : MonoBehaviour
     private LineRenderer rangeRenderer;
     private float failureTimer;
 
+    public void Configure(Sprite previewSprite, Vector3 previewScale)
+    {
+        if (previewSprite != null)
+        {
+            ghostRenderer.sprite = previewSprite;
+        }
+
+        ghostRenderer.transform.localScale = previewScale;
+    }
+
     private void Awake()
     {
         placement = GetComponent<TowerPlacement>();

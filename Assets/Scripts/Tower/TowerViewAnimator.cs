@@ -4,9 +4,9 @@ using UnityEngine;
 [RequireComponent(typeof(SpriteRenderer))]
 public sealed class TowerViewAnimator : MonoBehaviour
 {
-    [SerializeField] private Color fireFlashColor = Color.white;
-    [SerializeField] private float fireFlashDuration = 0.08f;
-    [SerializeField] private float fireScale = 1.12f;
+    [SerializeField] private Color fireFlashColor = new Color(1f, 0.32f, 0.06f, 1f);
+    [SerializeField] private float fireFlashDuration = 0.16f;
+    [SerializeField] private float fireScale = 1.25f;
     [SerializeField] private float rotateSpeed = 18f;
 
     private TowerAttack towerAttack;
@@ -49,7 +49,7 @@ public sealed class TowerViewAnimator : MonoBehaviour
 
         if (fireTimer > 0f)
         {
-            fireTimer -= Time.deltaTime;
+            fireTimer -= Time.unscaledDeltaTime;
             float t = Mathf.Clamp01(fireTimer / fireFlashDuration);
             spriteRenderer.color = Color.Lerp(baseColor, fireFlashColor, t);
             transform.localScale = Vector3.Lerp(baseScale, baseScale * fireScale, t);

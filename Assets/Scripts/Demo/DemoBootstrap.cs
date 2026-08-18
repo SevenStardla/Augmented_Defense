@@ -63,7 +63,10 @@ public sealed class DemoBootstrap : MonoBehaviour
 
         TowerPlacement placement = new GameObject("Tower Placement").AddComponent<TowerPlacement>();
         placement.Configure(camera, towerPrefab, towerData, ~0);
-        placement.gameObject.AddComponent<TowerPlacementPreview>();
+        TowerPlacementPreview placementPreview = placement.gameObject.AddComponent<TowerPlacementPreview>();
+        placementPreview.Configure(
+            towerPrefab.GetComponent<SpriteRenderer>().sprite,
+            towerPrefab.transform.localScale);
 
         DefenderController player = CreatePlayer(new Vector3(-4.5f, -2.5f, 0f));
         CreateStartingTower(towerPrefab, towerData, new Vector3(-1.5f, 0.7f, 0f));
@@ -274,7 +277,15 @@ public sealed class DemoBootstrap : MonoBehaviour
 
     private Tower CreateTowerPrefab()
     {
-        GameObject prefab = CreateSpriteObject("Tower Prefab", Vector3.zero, new Color(0.97f, 0.77f, 0.24f), new Vector3(0.6f, 0.6f, 1f));
+        GameObject prefab = CreateSpriteObject("Tower Prefab", Vector3.zero, new Color(0.97f, 0.77f, 0.24f), new Vector3(0.7f, 0.7f, 1f));
+        Sprite towerSprite = LoadSpriteResource("Art/Tower/basic_tower");
+        if (towerSprite != null)
+        {
+            SpriteRenderer spriteRenderer = prefab.GetComponent<SpriteRenderer>();
+            spriteRenderer.sprite = towerSprite;
+            spriteRenderer.color = Color.white;
+        }
+
         prefab.SetActive(false);
         prefab.layer = BlockedLayer;
         prefab.AddComponent<BoxCollider2D>();
