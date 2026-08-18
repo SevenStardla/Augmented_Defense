@@ -4,11 +4,12 @@ using UnityEngine;
 [RequireComponent(typeof(SpriteRenderer))]
 public sealed class CoreViewAnimator : MonoBehaviour
 {
-    [SerializeField] private Color hitColor = new Color(1f, 0.25f, 0.2f, 1f);
+    [SerializeField] private Color hitColor = new Color(1f, 0.5f, 0.42f, 1f);
     [SerializeField] private Color deadColor = new Color(0.12f, 0.12f, 0.14f, 1f);
     [SerializeField] private float breathAmount = 0.03f;
-    [SerializeField] private float hitDuration = 0.2f;
-    [SerializeField] private float shakeAmount = 0.08f;
+    [SerializeField] private float hitDuration = 0.28f;
+    [SerializeField] private float hitScale = 1.12f;
+    [SerializeField] private float shakeAmount = 0.13f;
 
     private CoreHealth coreHealth;
     private SpriteRenderer spriteRenderer;
@@ -52,9 +53,11 @@ public sealed class CoreViewAnimator : MonoBehaviour
 
         if (hitTimer > 0f)
         {
-            hitTimer -= Time.deltaTime;
-            Vector2 random = Random.insideUnitCircle * shakeAmount * Mathf.Clamp01(hitTimer / hitDuration);
+            hitTimer -= Time.unscaledDeltaTime;
+            float hitRatio = Mathf.Clamp01(hitTimer / hitDuration);
+            Vector2 random = Random.insideUnitCircle * shakeAmount * hitRatio;
             transform.position = basePosition + new Vector3(random.x, random.y, 0f);
+            transform.localScale = Vector3.Lerp(baseScale, baseScale * hitScale, hitRatio);
             spriteRenderer.color = hitColor;
             return;
         }

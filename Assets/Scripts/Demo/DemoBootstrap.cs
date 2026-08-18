@@ -163,7 +163,15 @@ public sealed class DemoBootstrap : MonoBehaviour
 
     private CoreHealth CreateCore(Vector3 position)
     {
-        GameObject coreObject = CreateSpriteObject("Core", position, new Color(0.21f, 0.76f, 0.91f), new Vector3(0.9f, 0.9f, 1f));
+        GameObject coreObject = CreateSpriteObject("Core", position, new Color(0.21f, 0.76f, 0.91f), new Vector3(1.05f, 1.05f, 1f));
+        Sprite coreSprite = LoadSpriteResource("Art/Core/system_core");
+        if (coreSprite != null)
+        {
+            SpriteRenderer spriteRenderer = coreObject.GetComponent<SpriteRenderer>();
+            spriteRenderer.sprite = coreSprite;
+            spriteRenderer.color = Color.white;
+        }
+
         coreObject.layer = BlockedLayer;
         coreObject.AddComponent<BoxCollider2D>();
         CoreHealth coreHealth = coreObject.AddComponent<CoreHealth>();
