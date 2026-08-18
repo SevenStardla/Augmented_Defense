@@ -46,9 +46,9 @@ public sealed class DemoBootstrap : MonoBehaviour
         Transform[] path = CreatePath();
         CoreHealth core = CreateCore(path[path.Length - 1].position);
         EnemyData normalEnemy = CreateEnemyData("Normal Enemy", new Color(0.92f, 0.25f, 0.26f), 1f, 50, 1.1f, 10, 4, spriteResourcePath: "Art/Enemies/normal_enemy_v2");
-        EnemyData runnerEnemy = CreateEnemyData("Runner Enemy", new Color(1f, 0.62f, 0.16f), 0.78f, 30, 1.85f, 8, 3);
-        EnemyData tankEnemy = CreateEnemyData("Tank Enemy", new Color(0.62f, 0.3f, 0.9f), 1.35f, 160, 0.68f, 20, 10);
-        EnemyData bossEnemy = CreateEnemyData("Overseer Boss", new Color(0.95f, 0.18f, 0.72f), 1.9f, 1000, 0.52f, 40, 50, true);
+        EnemyData runnerEnemy = CreateEnemyData("Runner Enemy", new Color(1f, 0.62f, 0.16f), 0.78f, 30, 1.85f, 8, 3, spriteResourcePath: "Art/Enemies/runner_enemy");
+        EnemyData tankEnemy = CreateEnemyData("Tank Enemy", new Color(0.62f, 0.3f, 0.9f), 1.6f, 160, 0.68f, 20, 10, spriteResourcePath: "Art/Enemies/tank_enemy");
+        EnemyData bossEnemy = CreateEnemyData("Overseer Boss", new Color(0.95f, 0.18f, 0.72f), 2.25f, 1000, 0.52f, 40, 50, true, spriteResourcePath: "Art/Enemies/boss_overseer");
         Enemy enemyPrefab = CreateEnemyPrefab();
         TowerData towerData = CreateTowerData();
         Tower towerPrefab = CreateTowerPrefab();
