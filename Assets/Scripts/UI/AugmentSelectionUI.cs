@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -9,6 +10,7 @@ public sealed class AugmentSelectionUI : MonoBehaviour
     private Text[] labels;
     private Text feedbackText;
     private float feedbackTimer;
+    private bool selectionPending;
     private const float FeedbackDuration = 3f;
 
     public void Configure(GameObject panelRoot, AugmentManager augmentManager, Button[] choiceButtons, Text[] choiceLabels, Text selectionFeedbackText)
@@ -68,6 +70,7 @@ public sealed class AugmentSelectionUI : MonoBehaviour
 
         AugmentData[] offers = manager != null ? manager.RollOffers() : new AugmentData[0];
         panel?.SetActive(true);
+        selectionPending = false;
 
         for (int i = 0; i < buttons.Length; i++)
         {
@@ -75,6 +78,7 @@ public sealed class AugmentSelectionUI : MonoBehaviour
             button.onClick.RemoveAllListeners();
             bool hasOffer = i < offers.Length;
             button.gameObject.SetActive(hasOffer);
+            button.interactable = hasOffer;
 
             if (!hasOffer)
             {
@@ -84,8 +88,32 @@ public sealed class AugmentSelectionUI : MonoBehaviour
             AugmentData offer = offers[i];
             int nextStack = manager.GetStackCount(offer) + 1;
             labels[i].text = $"{offer.displayName}\n{offer.description}\nStack {nextStack}/{offer.maxStacks}";
-            button.onClick.AddListener(() => manager.SelectAugment(offer));
+            button.onClick.AddListener(() => HandleChoiceClicked(offer, button));
         }
+    }
+
+    private void HandleChoiceClicked(AugmentData offer, Button selectedButton)
+    {
+        if (selectionPending || offer == null || manager == null)
+        {
+            return;
+        }
+
+        selectionPending = true;
+        for (int i = 0; i < buttons.Length; i++)
+        {
+            buttons[i].interactable = false;
+        }
+
+        AugmentCardFeedback cardFeedback = selectedButton.GetComponent<AugmentCardFeedback>();
+        cardFeedback?.PlaySelectionFeedback();
+        StartCoroutine(SelectAfterFeedback(offer));
+    }
+
+    private IEnumerator SelectAfterFeedback(AugmentData offer)
+    {
+        yield return new WaitForSecondsRealtime(AugmentCardFeedback.SelectionFeedbackDuration);
+        manager.SelectAugment(offer);
     }
 
     private void HandleAugmentSelected(AugmentData augment)

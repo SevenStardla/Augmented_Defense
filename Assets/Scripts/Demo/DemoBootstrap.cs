@@ -475,6 +475,7 @@ public sealed class DemoBootstrap : MonoBehaviour
         {
             float x = -50f - i * 235f;
             buttons[i] = CreateButton(panel.transform, $"Augment Choice {i + 1}", "Augment", new Vector2(x, -95f), new Vector2(215f, 210f));
+            buttons[i].gameObject.AddComponent<AugmentCardFeedback>();
             labels[i] = buttons[i].GetComponentInChildren<Text>();
             labels[i].fontSize = 17;
         }
