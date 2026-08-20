@@ -360,6 +360,14 @@ public sealed class DemoBootstrap : MonoBehaviour
         canvas.gameObject.AddComponent<CanvasScaler>().uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
         canvas.gameObject.AddComponent<GraphicRaycaster>();
 
+        GameObject statusInputBlocker = CreatePanel(canvas.transform, "Top Left Status Input Blocker", Color.clear, Vector2.zero, new Vector2(480f, 150f));
+        RectTransform statusBlockerRect = statusInputBlocker.GetComponent<RectTransform>();
+        statusBlockerRect.anchorMin = new Vector2(0f, 1f);
+        statusBlockerRect.anchorMax = new Vector2(0f, 1f);
+        statusBlockerRect.pivot = new Vector2(0f, 1f);
+        statusBlockerRect.anchoredPosition = Vector2.zero;
+        statusInputBlocker.GetComponent<Image>().raycastTarget = true;
+
         Text title = CreateText(canvas.transform, "Title", "Augmented Defense", 24, TextAnchor.UpperLeft, new Vector2(18f, -14f), new Vector2(460f, 36f));
         title.color = new Color(0.92f, 0.95f, 0.97f);
         title.gameObject.AddComponent<UITextFeedback>().CaptureBaseState();
@@ -452,7 +460,7 @@ public sealed class DemoBootstrap : MonoBehaviour
 
     private void CreateAugmentUi(Transform canvas, AugmentManager augmentManager)
     {
-        Text feedbackText = CreateText(canvas, "Augment Selection Feedback", "", 18, TextAnchor.MiddleCenter, new Vector2(0f, 105f), new Vector2(500f, 70f));
+        Text feedbackText = CreateText(canvas, "Augment Selection Feedback", "", 17, TextAnchor.MiddleCenter, new Vector2(-70f, 95f), new Vector2(420f, 76f));
         feedbackText.color = new Color(0.9f, 0.82f, 0.35f, 1f);
         feedbackText.raycastTarget = false;
         feedbackText.gameObject.SetActive(false);
