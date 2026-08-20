@@ -9,11 +9,20 @@ public sealed class DefenderController : MonoBehaviour
     [SerializeField] private float attackDamage = 12f;
     [SerializeField] private float attackInterval = 0.35f;
     [SerializeField] private LayerMask enemyLayerMask = ~0;
+    [SerializeField] private float screenEdgePadding = 0.08f;
 
     private float cooldown;
+    private Camera worldCamera;
+    private SpriteRenderer spriteRenderer;
 
     public event Action<Vector2> MoveInputChanged;
     public event Action<Enemy> Fired;
+
+    private void Awake()
+    {
+        worldCamera = Camera.main;
+        spriteRenderer = GetComponent<SpriteRenderer>();
+    }
 
     private void Update()
     {
@@ -44,7 +53,35 @@ public sealed class DefenderController : MonoBehaviour
         }
 
         MoveInputChanged?.Invoke(input);
-        transform.position += (Vector3)(input * moveSpeed * Time.deltaTime);
+        Vector3 nextPosition = transform.position + (Vector3)(input * moveSpeed * Time.deltaTime);
+        transform.position = ClampToCameraBounds(nextPosition);
+    }
+
+    private Vector3 ClampToCameraBounds(Vector3 position)
+    {
+        if (worldCamera == null)
+        {
+            worldCamera = Camera.main;
+        }
+
+        if (worldCamera == null || !worldCamera.orthographic)
+        {
+            return position;
+        }
+
+        Vector3 bottomLeft = worldCamera.ViewportToWorldPoint(Vector3.zero);
+        Vector3 topRight = worldCamera.ViewportToWorldPoint(Vector3.one);
+        Vector3 extents = spriteRenderer != null ? spriteRenderer.bounds.extents : Vector3.zero;
+
+        position.x = Mathf.Clamp(
+            position.x,
+            bottomLeft.x + extents.x + screenEdgePadding,
+            topRight.x - extents.x - screenEdgePadding);
+        position.y = Mathf.Clamp(
+            position.y,
+            bottomLeft.y + extents.y + screenEdgePadding,
+            topRight.y - extents.y - screenEdgePadding);
+        return position;
     }
 
     private void Attack()

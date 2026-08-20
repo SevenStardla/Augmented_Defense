@@ -9,6 +9,8 @@ public sealed class TowerPlacement : MonoBehaviour
     [SerializeField] private TowerData selectedTowerData;
     [SerializeField] private LayerMask blockedLayerMask;
     [SerializeField] private float placementRadius = 0.35f;
+    [SerializeField] private bool restrictToPlacementBounds;
+    [SerializeField] private Rect placementBounds;
 
     public TowerData SelectedTowerData => selectedTowerData;
     public float PlacementRadius => placementRadius;
@@ -23,12 +25,14 @@ public sealed class TowerPlacement : MonoBehaviour
         }
     }
 
-    public void Configure(Camera camera, Tower prefab, TowerData towerData, LayerMask blockedLayers)
+    public void Configure(Camera camera, Tower prefab, TowerData towerData, LayerMask blockedLayers, Rect allowedBounds)
     {
         worldCamera = camera;
         towerPrefab = prefab;
         selectedTowerData = towerData;
         blockedLayerMask = blockedLayers;
+        placementBounds = allowedBounds;
+        restrictToPlacementBounds = true;
     }
 
     private void Update()
@@ -99,6 +103,11 @@ public sealed class TowerPlacement : MonoBehaviour
 
     private bool CanPlace(Vector3 position)
     {
+        if (restrictToPlacementBounds && !placementBounds.Contains(new Vector2(position.x, position.y)))
+        {
+            return false;
+        }
+
         return Physics2D.OverlapCircle(position, placementRadius, blockedLayerMask) == null;
     }
 }

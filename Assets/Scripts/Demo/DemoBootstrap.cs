@@ -37,6 +37,7 @@ public sealed class DemoBootstrap : MonoBehaviour
         Time.timeScale = 1f;
 
         Camera camera = CreateCamera();
+        CreateBackground(camera);
         GameManager gameManager = new GameObject("Game Manager").AddComponent<GameManager>();
         EconomyManager economyManager = new GameObject("Economy Manager").AddComponent<EconomyManager>();
         new GameObject("Runtime Augment Stats").AddComponent<RuntimeAugmentStats>();
@@ -62,7 +63,12 @@ public sealed class DemoBootstrap : MonoBehaviour
         waveManager.Configure(spawner, CreateWaves(normalEnemy, runnerEnemy, tankEnemy, bossEnemy));
 
         TowerPlacement placement = new GameObject("Tower Placement").AddComponent<TowerPlacement>();
-        placement.Configure(camera, towerPrefab, towerData, ~0);
+        placement.Configure(
+            camera,
+            towerPrefab,
+            towerData,
+            ~0,
+            new Rect(-7.4f, -4.35f, 13.8f, 8.15f));
         TowerPlacementPreview placementPreview = placement.gameObject.AddComponent<TowerPlacementPreview>();
         placementPreview.Configure(
             towerPrefab.GetComponent<SpriteRenderer>().sprite,
@@ -94,6 +100,24 @@ public sealed class DemoBootstrap : MonoBehaviour
         camera.orthographic = true;
         camera.orthographicSize = 5.2f;
         return camera;
+    }
+
+    private void CreateBackground(Camera camera)
+    {
+        Sprite backgroundSprite = LoadSpriteResource("Art/Background/arena_floor");
+        if (backgroundSprite == null)
+        {
+            return;
+        }
+
+        GameObject backgroundObject = new GameObject("Arena Background");
+        SpriteRenderer spriteRenderer = backgroundObject.AddComponent<SpriteRenderer>();
+        spriteRenderer.sprite = backgroundSprite;
+        spriteRenderer.color = Color.white;
+        spriteRenderer.sortingOrder = -100;
+
+        CameraBackdrop backdrop = backgroundObject.AddComponent<CameraBackdrop>();
+        backdrop.Configure(camera);
     }
 
     private AugmentData[] CreateAugments()
@@ -149,6 +173,17 @@ public sealed class DemoBootstrap : MonoBehaviour
         line.endColor = new Color(0.85f, 0.67f, 0.28f);
         line.SetPositions(positions);
         pathRoot.AddComponent<PathPulseView>();
+        pathRoot.layer = BlockedLayer;
+
+        EdgeCollider2D pathCollider = pathRoot.AddComponent<EdgeCollider2D>();
+        Vector2[] colliderPoints = new Vector2[positions.Length];
+        for (int i = 0; i < positions.Length; i++)
+        {
+            colliderPoints[i] = positions[i];
+        }
+
+        pathCollider.points = colliderPoints;
+        pathCollider.edgeRadius = 0.18f;
 
         for (int i = 0; i < positions.Length; i++)
         {
