@@ -4,9 +4,14 @@ using UnityEngine;
 public sealed class EnemyHealthBar : MonoBehaviour
 {
     [SerializeField] private Vector3 localOffset = new Vector3(0f, 0.55f, 0f);
-    [SerializeField] private Vector2 size = new Vector2(0.5f, 0.06f);
-    [SerializeField] private Color backgroundColor = new Color(0f, 0f, 0f, 0.65f);
-    [SerializeField] private Color fillColor = new Color(0.25f, 1f, 0.35f, 1f);
+    [SerializeField] private Vector2 size = new Vector2(0.68f, 0.095f);
+    [SerializeField] private Color backgroundColor = new Color(0.015f, 0.02f, 0.025f, 0.92f);
+    [SerializeField] private Color healthyColor = new Color(0.2f, 1f, 0.38f, 1f);
+    [SerializeField] private Color warningColor = new Color(1f, 0.78f, 0.12f, 1f);
+    [SerializeField] private Color criticalColor = new Color(1f, 0.18f, 0.14f, 1f);
+
+    private const float FillWidth = 0.84f;
+    private const float FillHeight = 0.54f;
 
     private Enemy enemy;
     private Transform fill;
@@ -35,8 +40,15 @@ public sealed class EnemyHealthBar : MonoBehaviour
     {
         if (backgroundRenderer != null)
         {
-            backgroundRenderer.transform.position = transform.position + localOffset;
-            backgroundRenderer.transform.rotation = Quaternion.identity;
+            Transform barTransform = backgroundRenderer.transform;
+            barTransform.position = transform.position + localOffset;
+            barTransform.rotation = Quaternion.identity;
+
+            Vector3 parentScale = transform.lossyScale;
+            barTransform.localScale = new Vector3(
+                size.x / Mathf.Max(Mathf.Abs(parentScale.x), 0.001f),
+                size.y / Mathf.Max(Mathf.Abs(parentScale.y), 0.001f),
+                1f);
         }
     }
 
@@ -54,10 +66,10 @@ public sealed class EnemyHealthBar : MonoBehaviour
         GameObject fillObject = new GameObject("Fill");
         fillObject.transform.SetParent(background.transform, false);
         fillObject.transform.localPosition = Vector3.zero;
-        fillObject.transform.localScale = Vector3.one;
+        fillObject.transform.localScale = new Vector3(FillWidth, FillHeight, 1f);
         fillRenderer = fillObject.AddComponent<SpriteRenderer>();
         fillRenderer.sprite = backgroundRenderer.sprite;
-        fillRenderer.color = fillColor;
+        fillRenderer.color = healthyColor;
         fillRenderer.sortingOrder = 11;
         fill = fillObject.transform;
     }
@@ -65,8 +77,9 @@ public sealed class EnemyHealthBar : MonoBehaviour
     private void HandleHealthChanged(Enemy changedEnemy, int current, int max)
     {
         float ratio = max > 0 ? Mathf.Clamp01(current / (float)max) : 0f;
-        fill.localScale = new Vector3(ratio, 1f, 1f);
-        fill.localPosition = new Vector3((ratio - 1f) * 0.5f, 0f, 0f);
+        fill.localScale = new Vector3(ratio * FillWidth, FillHeight, 1f);
+        fill.localPosition = new Vector3((ratio - 1f) * FillWidth * 0.5f, 0f, 0f);
+        fillRenderer.color = GetHealthColor(ratio);
         bool visible = ratio > 0f && ratio < 1f;
         backgroundRenderer.enabled = visible;
         fillRenderer.enabled = visible;
@@ -76,6 +89,16 @@ public sealed class EnemyHealthBar : MonoBehaviour
     {
         backgroundRenderer.enabled = false;
         fillRenderer.enabled = false;
+    }
+
+    private Color GetHealthColor(float ratio)
+    {
+        if (ratio > 0.5f)
+        {
+            return Color.Lerp(warningColor, healthyColor, (ratio - 0.5f) * 2f);
+        }
+
+        return Color.Lerp(criticalColor, warningColor, ratio * 2f);
     }
 
     private Sprite CreateSprite()
