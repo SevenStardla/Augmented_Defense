@@ -500,14 +500,17 @@ public sealed class DemoBootstrap : MonoBehaviour
 
     private void EnsureEventSystem()
     {
-        if (FindFirstObjectByType<EventSystem>() != null)
+        EventSystem eventSystem = FindFirstObjectByType<EventSystem>();
+        if (eventSystem != null)
         {
+            eventSystem.sendNavigationEvents = false;
             return;
         }
 
-        GameObject eventSystem = new GameObject("EventSystem");
-        eventSystem.AddComponent<EventSystem>();
-        eventSystem.AddComponent<StandaloneInputModule>();
+        GameObject eventSystemObject = new GameObject("EventSystem");
+        eventSystem = eventSystemObject.AddComponent<EventSystem>();
+        eventSystem.sendNavigationEvents = false;
+        eventSystemObject.AddComponent<StandaloneInputModule>();
     }
 
     private Text CreateText(Transform parent, string name, string value, int size, TextAnchor anchor, Vector2 anchoredPosition, Vector2 sizeDelta)
@@ -534,11 +537,23 @@ public sealed class DemoBootstrap : MonoBehaviour
     {
         GameObject buttonObject = CreatePanel(parent, name, new Color(0.15f, 0.25f, 0.32f, 0.95f), anchoredPosition, sizeDelta);
         Button button = buttonObject.AddComponent<Button>();
+        Navigation navigation = button.navigation;
+        navigation.mode = Navigation.Mode.None;
+        button.navigation = navigation;
+        button.onClick.AddListener(ClearCurrentUiSelection);
         Text text = CreateText(buttonObject.transform, "Label", label, 16, TextAnchor.MiddleCenter, Vector2.zero, sizeDelta);
         button.targetGraphic = buttonObject.GetComponent<Image>();
         button.colors = ColorBlock.defaultColorBlock;
         text.color = Color.white;
         return button;
+    }
+
+    private void ClearCurrentUiSelection()
+    {
+        if (EventSystem.current != null)
+        {
+            EventSystem.current.SetSelectedGameObject(null);
+        }
     }
 
     private GameObject CreatePanel(Transform parent, string name, Color color, Vector2 anchoredPosition, Vector2 sizeDelta)
