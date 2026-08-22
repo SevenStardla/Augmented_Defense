@@ -382,6 +382,11 @@ public sealed class DemoBootstrap : MonoBehaviour
         hintText.gameObject.AddComponent<UITextFeedback>();
         hintText.gameObject.AddComponent<UIHintFeedback>().Configure(player, placement);
 
+        Text objectiveText = CreateText(canvas.transform, "Start Objective", "DEFEND THE CORE  ·  SURVIVE 5 WAVES", 18, TextAnchor.LowerCenter, new Vector2(0f, 58f), new Vector2(420f, 32f));
+        objectiveText.color = new Color(0.35f, 0.95f, 0.9f, 1f);
+        objectiveText.raycastTarget = false;
+        objectiveText.gameObject.AddComponent<UIStartObjective>();
+
         CreateBossHealthBar(canvas.transform, spawner);
 
         Text bossAnnouncement = CreateText(canvas.transform, "Boss Announcement", "", 26, TextAnchor.MiddleCenter, new Vector2(0f, 20f), new Vector2(400f, 70f));
@@ -578,6 +583,11 @@ public sealed class DemoBootstrap : MonoBehaviour
             return new Vector2(0f, 0f);
         }
 
+        if (anchor == TextAnchor.LowerCenter)
+        {
+            return new Vector2(0.5f, 0f);
+        }
+
         if (anchor == TextAnchor.MiddleCenter)
         {
             return new Vector2(0.5f, 0.5f);
@@ -591,6 +601,11 @@ public sealed class DemoBootstrap : MonoBehaviour
         if (anchor == TextAnchor.LowerLeft)
         {
             return new Vector2(0f, 0f);
+        }
+
+        if (anchor == TextAnchor.LowerCenter)
+        {
+            return new Vector2(0.5f, 0f);
         }
 
         if (anchor == TextAnchor.MiddleCenter)
